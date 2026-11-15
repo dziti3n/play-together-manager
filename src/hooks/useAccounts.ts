@@ -4,6 +4,7 @@ import { INITIAL_ACCOUNTS, INITIAL_ORDERS } from '../data/initialData';
 import {
   SupabaseConfig,
   getSavedSupabaseConfig,
+  saveSupabaseConfig,
   fetchRemoteTeamData,
   pushRemoteTeamData,
   subscribeToTeamRoom,
@@ -87,7 +88,25 @@ export function useAccounts() {
   }, [featuredCrops]);
 
   // ================= CLOUD REALTIME SYNC (SUPABASE) =================
-  const [cloudConfig, setCloudConfig] = useState<SupabaseConfig | null>(() => getSavedSupabaseConfig());
+  const [cloudConfig, setCloudConfig] = useState<SupabaseConfig | null>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const url = params.get('s_url');
+      const anonKey = params.get('s_key');
+      const roomId = params.get('s_room');
+      if (url && anonKey && roomId) {
+        const inviteConfig: SupabaseConfig = {
+          url: decodeURIComponent(url).trim(),
+          anonKey: decodeURIComponent(anonKey).trim(),
+          roomId: decodeURIComponent(roomId).trim(),
+        };
+        saveSupabaseConfig(inviteConfig);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return inviteConfig;
+      }
+    } catch {}
+    return getSavedSupabaseConfig();
+  });
   const isRemoteUpdatingRef = useRef(false);
 
   // Lắng nghe thay đổi từ bạn bè qua Supabase Realtime

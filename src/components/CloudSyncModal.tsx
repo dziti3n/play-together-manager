@@ -15,6 +15,7 @@ import {
   Loader2,
   RefreshCw,
   LogOut,
+  Share2,
 } from 'lucide-react';
 import {
   SupabaseConfig,
@@ -49,6 +50,15 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
+  const [copiedInvite, setCopiedInvite] = useState(false);
+
+  const handleCopyInviteLink = () => {
+    const base = window.location.origin + window.location.pathname;
+    const inviteLink = `${base}?s_url=${encodeURIComponent(url.trim())}&s_key=${encodeURIComponent(anonKey.trim())}&s_room=${encodeURIComponent(roomId.trim() || 'team_nongdan')}`;
+    navigator.clipboard.writeText(inviteLink);
+    setCopiedInvite(true);
+    setTimeout(() => setCopiedInvite(false), 2500);
+  };
 
   useEffect(() => {
     const saved = getSavedSupabaseConfig();
@@ -158,6 +168,43 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
 
         {/* Content */}
         <div className="p-6 overflow-y-auto space-y-5 flex-1">
+          {/* BANNER LINK MỜI NHANH CHO VỢ/CHỒNG TRÊN IPHONE */}
+          {isConnected && (
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/30 space-y-2.5 animate-in fade-in">
+              <div className="flex items-center justify-between flex-wrap gap-1.5">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-emerald-500" />
+                  <strong className="text-xs font-black text-emerald-700 dark:text-emerald-300">
+                    Link Mời Tham Gia Phòng (Dành Cho iPhone Ở Xa)
+                  </strong>
+                </div>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">
+                  1 Chạm Vào Phòng Ngay
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
+                Bạn chỉ cần sao chép link bên dưới rồi gửi qua Zalo / Messenger. Người bên kia mở trên iPhone chỉ cần bấm link là <strong>tự động kết nối vào phòng "{roomId}"</strong> mà không cần gõ URL hay Key!
+              </p>
+              <button
+                type="button"
+                onClick={handleCopyInviteLink}
+                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-all flex items-center justify-center gap-2 shadow-sm active:scale-98"
+              >
+                {copiedInvite ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Đã chép link mời! Hãy gửi qua Zalo cho vợ/chồng</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-4 h-4" />
+                    <span>🔗 Sao chép link mời phòng "{roomId}"</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
           {/* Thông tin phòng chung (Room Code) */}
           <div className="p-4 rounded-2xl bg-white dark:bg-[#22252C] border border-[#E8E2D5] dark:border-[#323640] shadow-xs space-y-3">
             <label className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
