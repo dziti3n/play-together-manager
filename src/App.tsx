@@ -38,8 +38,10 @@ export function App() {
     importFromJSON,
     resetToSampleData,
     isCloudConnected,
+    cloudStatus,
     cloudConfig,
     setCloudConfig,
+    reconnectCloud,
   } = useAccounts();
 
   // Filter state
@@ -125,7 +127,9 @@ export function App() {
         onOpenConnectMobile={() => setIsConnectMobileOpen(true)}
         onOpenCloudSync={() => setIsCloudSyncOpen(true)}
         isCloudConnected={isCloudConnected}
+        cloudStatus={cloudStatus}
         cloudRoomId={cloudConfig?.roomId}
+        onReconnectCloud={reconnectCloud}
       />
 
       {/* Main Container */}

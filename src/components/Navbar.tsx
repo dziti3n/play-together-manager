@@ -13,7 +13,9 @@ interface NavbarProps {
   onOpenConnectMobile: () => void;
   onOpenCloudSync: () => void;
   isCloudConnected?: boolean;
+  cloudStatus?: 'IDLE' | 'CONNECTING' | 'CONNECTED' | 'DISCONNECTED';
   cloudRoomId?: string;
+  onReconnectCloud?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -26,7 +28,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenConnectMobile,
   onOpenCloudSync,
   isCloudConnected = false,
+  cloudStatus = 'IDLE',
   cloudRoomId,
+  onReconnectCloud,
 }) => {
   const activeCount = accounts.filter((a) => a.status === 'active').length;
 
@@ -83,17 +87,51 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Cloud Sync Nhóm Bạn Bè */}
           <button
-            onClick={onOpenCloudSync}
-            title={isCloudConnected ? `Đang đồng bộ Cloud Realtime với phòng: ${cloudRoomId}` : 'Cài đặt đồng bộ Cloud Realtime cho nhóm bạn bè'}
+            onClick={() => {
+              if (cloudStatus === 'DISCONNECTED' && onReconnectCloud) {
+                onReconnectCloud();
+              } else {
+                onOpenCloudSync();
+              }
+            }}
+            title={
+              cloudStatus === 'CONNECTED'
+                ? `Đang kết nối trực tiếp với phòng: ${cloudRoomId}`
+                : cloudStatus === 'CONNECTING'
+                ? 'Đang kết nối tới Supabase Cloud...'
+                : cloudStatus === 'DISCONNECTED'
+                ? 'Mất kết nối tới Cloud. Bấm để thử kết nối lại hoặc mở cài đặt'
+                : 'Cài đặt đồng bộ Cloud Realtime cho nhóm bạn bè'
+            }
             className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl border text-xs sm:text-sm font-extrabold transition-all hover:scale-[1.02] active:scale-[0.98] ${
-              isCloudConnected
+              cloudStatus === 'CONNECTED'
                 ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 ring-1 ring-emerald-500/30'
+                : cloudStatus === 'CONNECTING'
+                ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border-amber-500/30 animate-pulse'
+                : cloudStatus === 'DISCONNECTED'
+                ? 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border-rose-500/30'
                 : 'bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border-sky-500/30'
             }`}
           >
-            <Cloud className={`w-4 h-4 ${isCloudConnected ? 'animate-pulse text-emerald-500' : 'text-sky-500'}`} />
+            <Cloud
+              className={`w-4 h-4 ${
+                cloudStatus === 'CONNECTED'
+                  ? 'animate-pulse text-emerald-500'
+                  : cloudStatus === 'CONNECTING'
+                  ? 'animate-spin text-amber-500'
+                  : cloudStatus === 'DISCONNECTED'
+                  ? 'text-rose-500'
+                  : 'text-sky-500'
+              }`}
+            />
             <span className="hidden sm:inline">
-              {isCloudConnected ? `🟢 Cloud: ${cloudRoomId}` : '☁️ Cloud Nhóm'}
+              {cloudStatus === 'CONNECTED'
+                ? `🟢 Cloud: ${cloudRoomId}`
+                : cloudStatus === 'CONNECTING'
+                ? '🟡 Đang nối Cloud...'
+                : cloudStatus === 'DISCONNECTED'
+                ? '🔴 Mất nối (Bấm thử lại)'
+                : '☁️ Cloud Nhóm'}
             </span>
           </button>
 

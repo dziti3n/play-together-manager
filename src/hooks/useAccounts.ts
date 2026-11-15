@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Account, FarmOrder, HarvestedFruit } from '../types';
 import { INITIAL_ACCOUNTS, INITIAL_ORDERS } from '../data/initialData';
 import {
@@ -8,6 +8,7 @@ import {
   fetchRemoteTeamData,
   pushRemoteTeamData,
   subscribeToTeamRoom,
+  ConnectionStatus,
 } from '../utils/supabaseSync';
 
 const ACCOUNTS_STORAGE_KEY = 'play_together_accounts_v4';
@@ -17,6 +18,18 @@ const DEFAULT_FEATURED_CROPS: string[] = [];
 
 export function getTotalFruits(account: Account): number {
   return account.fruits ? account.fruits.length : 0;
+}
+
+function computeTeamDataHash(data: { accounts: Account[]; orders: FarmOrder[]; featuredCrops: string[] }): string {
+  try {
+    return JSON.stringify({
+      acc: data.accounts,
+      ord: data.orders,
+      fc: data.featuredCrops,
+    });
+  } catch {
+    return '';
+  }
 }
 
 export function useAccounts() {
@@ -113,62 +126,160 @@ export function useAccounts() {
     } catch {}
     return getSavedSupabaseConfig();
   });
-  const isRemoteUpdatingRef = useRef(false);
 
-  // Lắng nghe thay đổi từ bạn bè qua Supabase Realtime
+  const [cloudStatus, setCloudStatus] = useState<ConnectionStatus>(
+    cloudConfig ? 'CONNECTING' : 'IDLE'
+  );
+
+  const isRemoteUpdatingRef = useRef(false);
+  const isInitialSyncedRef = useRef(false);
+  const lastSyncedHashRef = useRef<string>('');
+
+  // Hàm tải dữ liệu mới nhất từ Cloud về máy
+  const syncFromRemote = useCallback(async (cfg: SupabaseConfig) => {
+    try {
+      setCloudStatus('CONNECTING');
+      const result = await fetchRemoteTeamData(cfg);
+
+      if (result.data) {
+        // Có dữ liệu phòng trên Cloud
+        const remote = result.data;
+        const remoteHash = computeTeamDataHash({
+          accounts: remote.accounts,
+          orders: remote.orders,
+          featuredCrops: remote.featured_crops,
+        });
+
+        // Chỉ cập nhật state nếu dữ liệu trên Cloud khác với bộ nhớ hiện tại
+        if (remoteHash !== lastSyncedHashRef.current) {
+          isRemoteUpdatingRef.current = true;
+          lastSyncedHashRef.current = remoteHash;
+          if (Array.isArray(remote.accounts)) setAccounts(remote.accounts);
+          if (Array.isArray(remote.orders)) setOrders(remote.orders);
+          if (Array.isArray(remote.featured_crops)) setFeaturedCrops(remote.featured_crops);
+          setTimeout(() => {
+            isRemoteUpdatingRef.current = false;
+          }, 600);
+        }
+
+        isInitialSyncedRef.current = true;
+        setCloudStatus('CONNECTED');
+        return true;
+      } else if (result.notFound) {
+        // Phòng hoàn toàn mới chưa từng có trên Supabase: đẩy dữ liệu hiện tại lên để khởi tạo
+        const currentHash = computeTeamDataHash({ accounts, orders, featuredCrops });
+        lastSyncedHashRef.current = currentHash;
+        isInitialSyncedRef.current = true;
+        await pushRemoteTeamData(cfg, { accounts, orders, featuredCrops });
+        setCloudStatus('CONNECTED');
+        return true;
+      } else {
+        // Lỗi mạng hoặc Supabase: TUYỆT ĐỐI KHÔNG ĐÈ DỮ LIỆU
+        console.warn('Lỗi mạng khi tải dữ liệu từ Cloud, giữ nguyên dữ liệu hiện tại:', result.error);
+        setCloudStatus('DISCONNECTED');
+        return false;
+      }
+    } catch (err) {
+      console.error('syncFromRemote error:', err);
+      setCloudStatus('DISCONNECTED');
+      return false;
+    }
+  }, [accounts, orders, featuredCrops]);
+
+  // Kết nối và lắng nghe Realtime từ Cloud
   useEffect(() => {
     if (!cloudConfig || !cloudConfig.url || !cloudConfig.anonKey || !cloudConfig.roomId) {
+      setCloudStatus('IDLE');
+      isInitialSyncedRef.current = false;
       return;
     }
 
     let isMounted = true;
     let unsubscribe: (() => void) | undefined;
 
-    // 1. Tải dữ liệu ban đầu từ Cloud về
-    fetchRemoteTeamData(cloudConfig).then((remoteData) => {
-      if (!isMounted) return;
-      if (remoteData) {
-        isRemoteUpdatingRef.current = true;
-        if (Array.isArray(remoteData.accounts)) setAccounts(remoteData.accounts);
-        if (Array.isArray(remoteData.orders)) setOrders(remoteData.orders);
-        if (Array.isArray(remoteData.featured_crops)) setFeaturedCrops(remoteData.featured_crops);
-        setTimeout(() => {
-          isRemoteUpdatingRef.current = false;
-        }, 500);
-      } else {
-        // Lần đầu tiên phòng này được khởi tạo trên Supabase: đẩy dữ liệu hiện tại lên
-        pushRemoteTeamData(cloudConfig, { accounts, orders, featuredCrops });
-      }
-    });
+    // 1. Tải dữ liệu ban đầu
+    syncFromRemote(cloudConfig);
 
     // 2. Đăng ký Realtime Broadcast Channel
-    unsubscribe = subscribeToTeamRoom(cloudConfig, (remoteData) => {
-      if (!isMounted) return;
-      isRemoteUpdatingRef.current = true;
-      if (Array.isArray(remoteData.accounts)) setAccounts(remoteData.accounts);
-      if (Array.isArray(remoteData.orders)) setOrders(remoteData.orders);
-      if (Array.isArray(remoteData.featured_crops)) setFeaturedCrops(remoteData.featured_crops);
-      setTimeout(() => {
-        isRemoteUpdatingRef.current = false;
-      }, 500);
-    });
+    unsubscribe = subscribeToTeamRoom(
+      cloudConfig,
+      (remoteData) => {
+        if (!isMounted) return;
+        const remoteHash = computeTeamDataHash({
+          accounts: remoteData.accounts,
+          orders: remoteData.orders,
+          featuredCrops: remoteData.featured_crops,
+        });
+
+        // Tránh giật hoặc cập nhật thừa
+        if (remoteHash !== lastSyncedHashRef.current) {
+          isRemoteUpdatingRef.current = true;
+          lastSyncedHashRef.current = remoteHash;
+          if (Array.isArray(remoteData.accounts)) setAccounts(remoteData.accounts);
+          if (Array.isArray(remoteData.orders)) setOrders(remoteData.orders);
+          if (Array.isArray(remoteData.featured_crops)) setFeaturedCrops(remoteData.featured_crops);
+          setTimeout(() => {
+            isRemoteUpdatingRef.current = false;
+          }, 600);
+        }
+      },
+      (status) => {
+        if (!isMounted) return;
+        setCloudStatus(status);
+      }
+    );
+
+    // 3. Xử lý khi điện thoại (đặc biệt iPhone Safari) mở khóa hoặc quay lại trình duyệt
+    const handleAppWakeup = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) {
+        syncFromRemote(cloudConfig);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleAppWakeup);
+    window.addEventListener('online', handleAppWakeup);
+    window.addEventListener('focus', handleAppWakeup);
 
     return () => {
       isMounted = false;
       if (unsubscribe) unsubscribe();
+      document.removeEventListener('visibilitychange', handleAppWakeup);
+      window.removeEventListener('online', handleAppWakeup);
+      window.removeEventListener('focus', handleAppWakeup);
     };
   }, [cloudConfig?.url, cloudConfig?.anonKey, cloudConfig?.roomId]);
 
-  // Tự động đẩy thay đổi từ máy này lên Cloud cho bạn bè cùng thấy
+  // Tự động đẩy thay đổi từ máy này lên Cloud khi NGƯỜI DÙNG THỰC HIỆN THAO TÁC
   useEffect(() => {
-    if (!cloudConfig || isRemoteUpdatingRef.current) return;
+    // KHÓA AN TOÀN:
+    // 1. Chưa kết nối Cloud -> Không đẩy
+    // 2. Chưa hoàn tất tải ban đầu (Initial Sync) -> TUYỆT ĐỐI KHÔNG ĐẨY (ngăn máy vợ mở lên ghi đè rỗng/cũ vào phòng chồng)
+    // 3. Dữ liệu vừa nhận từ máy khác (isRemoteUpdatingRef) -> Không đẩy dội ngược
+    if (!cloudConfig || !isInitialSyncedRef.current || isRemoteUpdatingRef.current) {
+      return;
+    }
 
-    const timer = setTimeout(() => {
-      pushRemoteTeamData(cloudConfig, { accounts, orders, featuredCrops });
+    const currentHash = computeTeamDataHash({ accounts, orders, featuredCrops });
+
+    // 4. Nếu dữ liệu hiện tại giống hệt với Cloud -> Không đẩy thừa
+    if (currentHash === lastSyncedHashRef.current) {
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      if (isRemoteUpdatingRef.current) return;
+      lastSyncedHashRef.current = currentHash;
+      await pushRemoteTeamData(cloudConfig, { accounts, orders, featuredCrops });
     }, 400);
 
     return () => clearTimeout(timer);
   }, [accounts, orders, featuredCrops, cloudConfig]);
+
+  const reconnectCloud = useCallback(() => {
+    if (cloudConfig) {
+      syncFromRemote(cloudConfig);
+    }
+  }, [cloudConfig, syncFromRemote]);
 
   const toggleFeaturedCrop = (cropName: string) => {
     setFeaturedCrops((prev) => {
@@ -371,8 +482,10 @@ export function useAccounts() {
     exportToCSV,
     importFromJSON,
     resetToSampleData,
-    isCloudConnected: !!cloudConfig,
+    isCloudConnected: cloudStatus === 'CONNECTED',
+    cloudStatus,
     cloudConfig,
     setCloudConfig,
+    reconnectCloud,
   };
 }

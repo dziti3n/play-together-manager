@@ -4,7 +4,7 @@ import { Account, FarmOrder } from '../types';
 export interface SupabaseConfig {
   url: string;
   anonKey: string;
-  roomId: string; // Tên phòng / mã nhóm (ví dụ: team_nongdan_2026)
+  roomId: string; // Tên phòng / mã nhóm (ví dụ: 2 vợ chồng)
 }
 
 export interface RemoteFarmData {
@@ -15,11 +15,37 @@ export interface RemoteFarmData {
   updated_at: string;
 }
 
+export interface FetchRemoteResult {
+  data: RemoteFarmData | null;
+  notFound: boolean;
+  error?: any;
+}
+
+export type ConnectionStatus = 'IDLE' | 'CONNECTING' | 'CONNECTED' | 'DISCONNECTED';
+
 const CONFIG_STORAGE_KEY = 'pt_supabase_config';
 
 let supabaseClient: SupabaseClient | null = null;
 let realtimeChannel: RealtimeChannel | null = null;
+let currentClientKey = '';
 let lastPushedTimestamp = 0;
+
+/**
+ * Mã hóa tên phòng sang chuỗi ký tự ASCII an toàn cho WebSocket topic của Supabase Realtime
+ * Tránh lỗi ngắt kết nối do dấu tiếng Việt hoặc khoảng trắng (vd: "2 vợ chồng")
+ */
+export function toSafeChannelName(roomId: string): string {
+  try {
+    const raw = roomId.trim();
+    let hex = '';
+    for (let i = 0; i < raw.length; i++) {
+      hex += raw.charCodeAt(i).toString(16).padStart(4, '0');
+    }
+    return `farm_room_${hex.substring(0, 48)}`;
+  } catch {
+    return `farm_room_default`;
+  }
+}
 
 export function getSavedSupabaseConfig(): SupabaseConfig | null {
   try {
@@ -43,7 +69,15 @@ export function clearSupabaseConfig() {
 }
 
 export function getOrCreateSupabaseClient(config: SupabaseConfig): SupabaseClient {
-  if (supabaseClient) return supabaseClient;
+  const clientKey = `${config.url.trim()}:::${config.anonKey.trim()}`;
+  if (supabaseClient && currentClientKey === clientKey) {
+    return supabaseClient;
+  }
+
+  // Nếu thay đổi cấu hình URL hoặc Key, đóng kết nối cũ
+  disconnectSupabase();
+  currentClientKey = clientKey;
+
   supabaseClient = createClient(config.url.trim(), config.anonKey.trim(), {
     auth: { persistSession: false },
     realtime: {
@@ -56,13 +90,14 @@ export function getOrCreateSupabaseClient(config: SupabaseConfig): SupabaseClien
 }
 
 export function disconnectSupabase() {
-  if (realtimeChannel) {
+  if (realtimeChannel && supabaseClient) {
     try {
-      realtimeChannel.unsubscribe();
+      supabaseClient.removeChannel(realtimeChannel);
     } catch {}
     realtimeChannel = null;
   }
   supabaseClient = null;
+  currentClientKey = '';
 }
 
 /**
@@ -76,7 +111,7 @@ export async function testSupabaseConnection(
       auth: { persistSession: false },
     });
 
-    const { data, error } = await client
+    const { error } = await client
       .from('farm_teams')
       .select('room_id')
       .limit(1);
@@ -108,11 +143,14 @@ export async function testSupabaseConnection(
 }
 
 /**
- * Tải dữ liệu từ Supabase về
+ * Tải dữ liệu từ Supabase về có phân biệt rõ:
+ * - Có dữ liệu: { data: ..., notFound: false }
+ * - Phòng hoàn toàn mới (chưa có trong DB): { data: null, notFound: true }
+ * - Mất mạng / Lỗi kết nối: { data: null, notFound: false, error: ... } (KHÔNG ĐƯỢC GHI ĐÈ DỮ LIỆU)
  */
 export async function fetchRemoteTeamData(
   config: SupabaseConfig
-): Promise<RemoteFarmData | null> {
+): Promise<FetchRemoteResult> {
   try {
     const client = getOrCreateSupabaseClient(config);
     const { data, error } = await client
@@ -121,18 +159,23 @@ export async function fetchRemoteTeamData(
       .eq('room_id', config.roomId.trim())
       .single();
 
-    if (error && error.code !== 'PGRST116') {
-      console.warn('Lỗi tải dữ liệu nhóm:', error);
-      return null;
+    if (error) {
+      // PGRST116 là mã chuẩn của PostgREST: 0 rows found (phòng chưa từng được tạo)
+      if (error.code === 'PGRST116') {
+        return { data: null, notFound: true };
+      }
+      console.warn('Lỗi tải dữ liệu phòng từ Supabase:', error);
+      return { data: null, notFound: false, error };
     }
 
     if (data) {
-      return data as RemoteFarmData;
+      return { data: data as RemoteFarmData, notFound: false };
     }
   } catch (err) {
-    console.error('fetchRemoteTeamData error:', err);
+    console.error('fetchRemoteTeamData exception:', err);
+    return { data: null, notFound: false, error: err };
   }
-  return null;
+  return { data: null, notFound: true };
 }
 
 /**
@@ -175,51 +218,70 @@ export async function pushRemoteTeamData(
 
 /**
  * Đăng ký lắng nghe thay đổi thời gian thực (Realtime Subscription)
+ * Sử dụng topic an toàn và lọc room_id phía client để tránh lỗi syntax PostgREST khi có dấu tiếng Việt/khoảng trắng
  */
 export function subscribeToTeamRoom(
   config: SupabaseConfig,
-  onRemoteChange: (data: RemoteFarmData) => void
+  onRemoteChange: (data: RemoteFarmData) => void,
+  onStatusChange?: (status: ConnectionStatus) => void
 ): () => void {
   const client = getOrCreateSupabaseClient(config);
 
   if (realtimeChannel) {
     try {
-      realtimeChannel.unsubscribe();
+      client.removeChannel(realtimeChannel);
     } catch {}
     realtimeChannel = null;
   }
 
-  const channelName = 'room_' + config.roomId.trim();
+  onStatusChange?.('CONNECTING');
+  const safeTopic = toSafeChannelName(config.roomId);
+  const targetRoomId = config.roomId.trim();
+
   const channel = client
-    .channel(channelName)
+    .channel(safeTopic)
     .on(
       'postgres_changes',
       {
         event: '*',
         schema: 'public',
         table: 'farm_teams',
-        filter: `room_id=eq.${config.roomId.trim()}`,
       },
       (payload) => {
-        // Nếu thay đổi do chính máy này vừa gửi lên trong vòng 1.5 giây thì bỏ qua
-        if (Date.now() - lastPushedTimestamp < 1500) {
+        const newRecord = payload.new as RemoteFarmData;
+        if (!newRecord || !newRecord.room_id) return;
+        
+        // Kiểm tra đúng phòng của 2 người
+        if (newRecord.room_id.trim() !== targetRoomId) return;
+
+        // Bỏ qua tin dội ngược nếu vừa được đẩy bởi chính máy này trong 1.8 giây qua
+        if (Date.now() - lastPushedTimestamp < 1800) {
           return;
         }
 
-        const newRecord = payload.new as RemoteFarmData;
-        if (newRecord && Array.isArray(newRecord.accounts)) {
+        if (Array.isArray(newRecord.accounts)) {
           onRemoteChange(newRecord);
         }
       }
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      if (status === 'SUBSCRIBED') {
+        onStatusChange?.('CONNECTED');
+      } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        console.warn('Supabase Realtime socket status:', status, err);
+        onStatusChange?.('DISCONNECTED');
+      }
+    });
 
   realtimeChannel = channel;
 
   return () => {
     try {
-      channel.unsubscribe();
+      client.removeChannel(channel);
     } catch {}
+    if (realtimeChannel === channel) {
+      realtimeChannel = null;
+    }
   };
 }
 
