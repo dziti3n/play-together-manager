@@ -94,6 +94,12 @@ export function useAccounts() {
       const url = params.get('s_url');
       const anonKey = params.get('s_key');
       const roomId = params.get('s_room');
+      const geminiKey = params.get('s_gemini');
+      if (geminiKey) {
+        try {
+          localStorage.setItem('gemini_api_key', decodeURIComponent(geminiKey).trim());
+        } catch {}
+      }
       if (url && anonKey && roomId) {
         const inviteConfig: SupabaseConfig = {
           url: decodeURIComponent(url).trim(),

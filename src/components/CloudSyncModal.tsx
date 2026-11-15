@@ -54,7 +54,10 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
 
   const handleCopyInviteLink = () => {
     const base = window.location.origin + window.location.pathname;
-    const inviteLink = `${base}?s_url=${encodeURIComponent(url.trim())}&s_key=${encodeURIComponent(anonKey.trim())}&s_room=${encodeURIComponent(roomId.trim() || 'team_nongdan')}`;
+    const geminiKey = localStorage.getItem('gemini_api_key') || '';
+    const inviteLink = `${base}?s_url=${encodeURIComponent(url.trim())}&s_key=${encodeURIComponent(anonKey.trim())}&s_room=${encodeURIComponent(roomId.trim() || 'team_nongdan')}${
+      geminiKey.trim() ? `&s_gemini=${encodeURIComponent(geminiKey.trim())}` : ''
+    }`;
     navigator.clipboard.writeText(inviteLink);
     setCopiedInvite(true);
     setTimeout(() => setCopiedInvite(false), 2500);
