@@ -91,22 +91,24 @@ export const Navbar: React.FC<NavbarProps> = ({
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
           </button>
 
-          {/* Nút Làm Mới / Đồng Bộ Ngay cho vợ & bạn bè */}
-          {cloudRoomId && onManualSync && (
-            <button
-              onClick={onManualSync}
-              disabled={isSyncing}
-              title="Làm mới và tải toàn bộ dữ liệu mới nhất từ Cloud ngay lập tức (không lo mất thứ đã thêm)"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-xs sm:text-sm font-extrabold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-            >
-              <RefreshCw
-                className={`w-4 h-4 text-indigo-500 ${isSyncing ? 'animate-spin' : ''}`}
-              />
-              <span className="inline font-bold">
-                {isSyncing ? 'Đang tải...' : syncFeedback ? syncFeedback : 'Làm mới'}
-              </span>
-            </button>
-          )}
+          {/* Nút Làm Mới / Đồng Bộ Ngay (Luôn luôn hiển thị) */}
+          <button
+            onClick={onManualSync}
+            disabled={isSyncing}
+            title={
+              cloudRoomId
+                ? 'Làm mới và tải toàn bộ dữ liệu mới nhất từ Cloud ngay lập tức'
+                : 'Tải lại dữ liệu tài khoản và rương'
+            }
+            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-xs sm:text-sm font-extrabold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+          >
+            <RefreshCw
+              className={`w-4 h-4 text-indigo-500 ${isSyncing ? 'animate-spin' : ''}`}
+            />
+            <span className="font-bold">
+              {isSyncing ? 'Đang tải...' : syncFeedback ? syncFeedback : 'Làm mới'}
+            </span>
+          </button>
 
           {/* Cloud Sync Nhóm Bạn Bè */}
           <button

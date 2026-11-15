@@ -326,20 +326,26 @@ export function useAccounts() {
 
   // Nút bấm Làm Mới / Đồng Bộ thủ công cho người dùng
   const manualSync = useCallback(async () => {
-    if (!cloudConfig) return;
     setIsSyncing(true);
     try {
-      const ok = await syncFromRemote(cloudConfig);
-      if (ok) {
-        setSyncFeedback('Đã đồng bộ');
+      if (cloudConfig) {
+        const ok = await syncFromRemote(cloudConfig);
+        setSyncFeedback(ok ? 'Đã đồng bộ' : 'Mất mạng');
       } else {
-        setSyncFeedback('Mất mạng');
+        // Tải lại từ localStorage nếu chưa bật Cloud
+        const savedAccs = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
+        if (savedAccs) setAccounts(JSON.parse(savedAccs));
+        const savedOrders = localStorage.getItem(ORDERS_STORAGE_KEY);
+        if (savedOrders) setOrders(JSON.parse(savedOrders));
+        setSyncFeedback('Đã làm mới');
       }
+    } catch {
+      setSyncFeedback('Lỗi');
     } finally {
       setTimeout(() => {
         setIsSyncing(false);
-        setTimeout(() => setSyncFeedback(null), 2500);
-      }, 500);
+        setTimeout(() => setSyncFeedback(null), 2000);
+      }, 400);
     }
   }, [cloudConfig, syncFromRemote]);
 
