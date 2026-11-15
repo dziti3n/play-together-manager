@@ -817,9 +817,15 @@ export const FarmOrderModal: React.FC<FarmOrderModalProps> = ({
                         <span className="font-black text-xs">
                           {fruit.fruitName} #{idx + 1}
                         </span>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/25 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/25 text-[10px] font-bold">
                           <UserCheck className="w-3 h-3 text-sky-500" />
-                          <span>Acc: <strong>{account.username}</strong></span>
+                          <span>{account.characterName || account.username}</span>
+                          {account.roleId && (
+                            <span className="text-slate-400 font-mono">({account.roleId})</span>
+                          )}
+                          <span className="px-1.5 py-0.2 rounded-md bg-purple-500/15 text-purple-600 dark:text-purple-400 font-black">
+                            🎯 {account.dailyDones !== undefined ? account.dailyDones : 20}/20
+                          </span>
                         </span>
                       </div>
 
@@ -1314,10 +1320,13 @@ export const FarmOrderModal: React.FC<FarmOrderModalProps> = ({
                                 {/* TÊN TÀI KHOẢN NẰM TRỰC TIẾP TRONG Ô CỦA TRÁI NÀY! */}
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-500/10 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-500/25 text-xs font-bold">
                                   <UserCheck className="w-3.5 h-3.5 text-sky-500" />
-                                  <span>Acc: <strong className="font-black text-slate-900 dark:text-white">{account.username}</strong></span>
+                                  <span>Game: <strong className="font-black text-slate-900 dark:text-white">{account.characterName || account.username}</strong></span>
                                   {account.roleId && (
-                                    <span className="text-[10px] text-slate-400 font-mono">({account.roleId})</span>
+                                    <span className="text-[10px] text-slate-400 font-mono font-bold">(ID: {account.roleId})</span>
                                   )}
+                                  <span className="ml-1 px-1.5 py-0.5 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 text-[11px] font-black border border-purple-500/25">
+                                    🎯 {account.dailyDones !== undefined ? account.dailyDones : 20}/20 lượt
+                                  </span>
                                 </span>
 
                                 {/* Tag độ hiếm */}

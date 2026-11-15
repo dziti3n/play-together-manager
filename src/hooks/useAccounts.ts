@@ -537,17 +537,27 @@ export function useAccounts() {
         if (!toRemoveIds || toRemoveIds.length === 0) return acc;
         const removeSet = new Set(toRemoveIds);
 
-        // Trừ 1 vé (-1 vé)
+        // Số lượng trái tài khoản này gửi đi để làm đơn:
+        // Gửi 1 trái = trừ 1 lượt, gửi 2 trái = trừ 2 lượt
+        const fruitCount = toRemoveIds.length;
+
+        // Trừ 1 vé (-1 vé) khi tài khoản tham gia làm đơn
         const newTickets = Math.max(0, (acc.tickets || 0) - 1);
 
-        // Trừ 1 lượt done / thẻ: ưu tiên lượt done hàng ngày (20 lượt) trước, hết thì trừ thẻ tặng
+        // Trừ lượt done theo đúng số lượng trái acc gửi:
+        // Ưu tiên trừ trong 20 lượt done hàng ngày trước, hết thì trừ tiếp thẻ tặng
         let newDailyDones = acc.dailyDones !== undefined ? acc.dailyDones : 20;
         let newGiftCards = acc.giftCards !== undefined ? acc.giftCards : 0;
+        let remainingDeduct = fruitCount;
 
-        if (newDailyDones > 0) {
-          newDailyDones -= 1;
-        } else if (newGiftCards > 0) {
-          newGiftCards -= 1;
+        const deductFromDaily = Math.min(newDailyDones, remainingDeduct);
+        newDailyDones -= deductFromDaily;
+        remainingDeduct -= deductFromDaily;
+
+        if (remainingDeduct > 0) {
+          const deductFromGift = Math.min(newGiftCards, remainingDeduct);
+          newGiftCards -= deductFromGift;
+          remainingDeduct -= deductFromGift;
         }
 
         const remainingFruits = (acc.fruits || []).filter((f) => !removeSet.has(f.id));
