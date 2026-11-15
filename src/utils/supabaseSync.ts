@@ -26,6 +26,7 @@ export type ConnectionStatus = 'IDLE' | 'CONNECTING' | 'CONNECTED' | 'DISCONNECT
 const CONFIG_STORAGE_KEY = 'pt_supabase_config';
 const DELETED_ACCOUNTS_KEY = 'pt_deleted_accounts';
 const DELETED_ORDERS_KEY = 'pt_deleted_orders';
+const DELETED_FRUITS_KEY = 'pt_deleted_fruits';
 
 let supabaseClient: SupabaseClient | null = null;
 let realtimeChannel: RealtimeChannel | null = null;
@@ -83,18 +84,58 @@ export function recordDeletedOrder(id: string) {
   } catch {}
 }
 
+export function getDeletedFruitMap(): Map<string, number> {
+  try {
+    const raw = localStorage.getItem(DELETED_FRUITS_KEY);
+    if (raw) {
+      const obj = JSON.parse(raw);
+      return new Map(Object.entries(obj).map(([k, v]) => [k, Number(v)]));
+    }
+  } catch {}
+  return new Map();
+}
+
+export function recordDeletedFruit(id: string) {
+  recordDeletedFruits([id]);
+}
+
+export function recordDeletedFruits(ids: string[]) {
+  if (!ids || ids.length === 0) return;
+  try {
+    const map = getDeletedFruitMap();
+    const now = Date.now();
+    for (const id of ids) {
+      if (id) map.set(id, now);
+    }
+    const obj: Record<string, number> = {};
+    map.forEach((v, k) => {
+      // Giữ tombstone trong 14 ngày
+      if (Date.now() - v < 14 * 24 * 3600 * 1000) {
+        obj[k] = v;
+      }
+    });
+    localStorage.setItem(DELETED_FRUITS_KEY, JSON.stringify(obj));
+  } catch {}
+}
+
 // ================= Thuật toán Smart Merge (Chống mất dữ liệu 100%) =================
 
 /**
- * Trộn 2 danh sách củ quả theo id để khi cả 2 người cùng quét rương không bị mất của nhau
+ * Trộn 2 danh sách củ quả theo id và LOẠI TRỪ CÁC QUẢ ĐÃ BỊ XÓA (đã trừ khi làm đơn)
  */
-export function mergeFruits(fruitsA: HarvestedFruit[] = [], fruitsB: HarvestedFruit[] = []): HarvestedFruit[] {
+export function mergeFruits(
+  fruitsA: HarvestedFruit[] = [],
+  fruitsB: HarvestedFruit[] = [],
+  deletedFruitMap: Map<string, number> = getDeletedFruitMap()
+): HarvestedFruit[] {
   const map = new Map<string, HarvestedFruit>();
   for (const f of fruitsA || []) {
-    if (f && f.id) map.set(f.id, f);
+    if (f && f.id && !deletedFruitMap.has(f.id)) {
+      map.set(f.id, f);
+    }
   }
   for (const f of fruitsB || []) {
-    if (f && f.id && !map.has(f.id)) {
+    if (f && f.id && !deletedFruitMap.has(f.id) && !map.has(f.id)) {
       map.set(f.id, f);
     }
   }
@@ -138,20 +179,35 @@ export function mergeAccounts(
     const existing = accountMap.get(loc.id);
     if (!existing) {
       // Tài khoản này máy hiện tại tạo mới trong lúc mất mạng -> GIỮ LẠI
-      accountMap.set(loc.id, loc);
+      const deletedFruitMap = getDeletedFruitMap();
+      accountMap.set(loc.id, {
+        ...loc,
+        fruits: (loc.fruits || []).filter((f) => f && f.id && !deletedFruitMap.has(f.id)),
+      });
     } else {
       // Tài khoản có ở cả 2 máy: hợp nhất củ quả và chọn thông tin mới nhất
       const existingTime = new Date(existing.updatedAt || 0).getTime();
-      const combinedFruits = mergeFruits(existing.fruits, loc.fruits);
+      const deletedFruitMap = getDeletedFruitMap();
 
       if (locTime > existingTime) {
+        // Máy hiện tại cập nhật mới hơn (vừa hoàn thành đơn, xóa trái, v.v.)
+        const validLocalFruits = (loc.fruits || []).filter((f) => f && f.id && !deletedFruitMap.has(f.id));
         accountMap.set(loc.id, {
           ...loc,
-          fruits: combinedFruits,
+          fruits: validLocalFruits,
         });
-      } else {
+      } else if (existingTime > locTime) {
+        // Máy Cloud cập nhật mới hơn
+        const validRemoteFruits = (existing.fruits || []).filter((f) => f && f.id && !deletedFruitMap.has(f.id));
         accountMap.set(loc.id, {
           ...existing,
+          fruits: validRemoteFruits,
+        });
+      } else {
+        // Cùng mốc thời gian: trộn củ quả nhưng luôn loại trừ quả đã bị xóa
+        const combinedFruits = mergeFruits(existing.fruits, loc.fruits, deletedFruitMap);
+        accountMap.set(loc.id, {
+          ...loc,
           fruits: combinedFruits,
         });
       }

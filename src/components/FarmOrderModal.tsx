@@ -134,11 +134,16 @@ export const FarmOrderModal: React.FC<FarmOrderModalProps> = ({
 
   // Helper: Tìm tất cả củ/quả khớp với OrderItem trên toàn bộ tài khoản
   // Tự động phân bổ đúng số lượng cần nộp từ những quả ít biến thể nhất
-  const findMatchesAcrossAccounts = (item: OrderItem) => {
+  // excludeFruitIds: tránh double-count các quả đã được món trước trong đơn chọn
+  const findMatchesAcrossAccounts = (item: OrderItem, excludeFruitIds?: Set<string>) => {
     const list: { account: Account; fruit: HarvestedFruit }[] = [];
 
     for (const acc of accounts) {
-      for (const fruit of acc.fruits) {
+      for (const fruit of acc.fruits || []) {
+        if (excludeFruitIds && excludeFruitIds.has(fruit.id)) {
+          continue; // Trái này đã được chọn cho món khác trong đơn
+        }
+
         if (fruit.fruitName.toLowerCase() !== item.fruitName.toLowerCase()) {
           continue;
         }
@@ -147,12 +152,12 @@ export const FarmOrderModal: React.FC<FarmOrderModalProps> = ({
         if (item.matchAnyVariant) {
           isMatch = true;
         } else if (item.requiredVariant) {
-          if (fruit.variants.includes(item.requiredVariant)) {
+          if ((fruit.variants || []).some((v) => v.toLowerCase() === item.requiredVariant!.toLowerCase())) {
             isMatch = true;
           }
         } else {
           // Trái thường (không đột biến)
-          if (fruit.variants.length === 0) {
+          if (!fruit.variants || fruit.variants.length === 0) {
             isMatch = true;
           }
         }
@@ -167,7 +172,7 @@ export const FarmOrderModal: React.FC<FarmOrderModalProps> = ({
     }
 
     // Sắp xếp ưu tiên: trái ít biến thể nhất đứng đầu (dùng trước), trái nhiều biến thể nhất đứng cuối
-    list.sort((a, b) => a.fruit.variants.length - b.fruit.variants.length);
+    list.sort((a, b) => (a.fruit.variants?.length || 0) - (b.fruit.variants?.length || 0));
 
     // Danh sách ID hợp lệ hiện có trong kho
     const validFruitIdSet = new Set(list.map((m) => m.fruit.id));
@@ -247,8 +252,10 @@ export const FarmOrderModal: React.FC<FarmOrderModalProps> = ({
   const orderAnalysis = useMemo(() => {
     if (!currentOrder) return { isAllEnough: false, itemsStatus: [] };
 
+    const allocatedIds = new Set<string>();
     const itemsStatus = currentOrder.items.map((item) => {
-      const matchResult = findMatchesAcrossAccounts(item);
+      const matchResult = findMatchesAcrossAccounts(item, allocatedIds);
+      matchResult.selectedIds.forEach((id) => allocatedIds.add(id));
       return {
         item,
         ...matchResult,
@@ -260,17 +267,19 @@ export const FarmOrderModal: React.FC<FarmOrderModalProps> = ({
     return { isAllEnough, itemsStatus };
   }, [currentOrder, accounts, selectedFruitsPerItem]);
 
-  // Xử lý nộp đơn hàng - CHỈ TRỪ CHÍNH XÁC NHỮNG QUẢ ĐÃ ĐƯỢC CHỌN
+  // Xử lý nộp đơn hàng - CHỈ TRỪ CHÍNH XÁC NHỮNG QUẢ ĐÃ ĐƯỢC CHỌN (KHÔNG BỊ TRÙNG QUẢ GIỮA CÁC MÓN)
   const handleFulfillOrder = () => {
     if (!currentOrder || !orderAnalysis.isAllEnough) return;
 
     const confirmMsg = `Bạn có chắc muốn gửi "${currentOrder.title}"? Đúng số lượng nông sản đã chọn sẽ được trừ khỏi kho các tài khoản.`;
     if (!window.confirm(confirmMsg)) return;
 
+    const allocatedIds = new Set<string>();
     const deductionMap: Record<string, string[]> = {};
 
     for (const item of currentOrder.items) {
-      const { allMatches, selectedIds } = findMatchesAcrossAccounts(item);
+      const { allMatches, selectedIds } = findMatchesAcrossAccounts(item, allocatedIds);
+      selectedIds.forEach((id) => allocatedIds.add(id));
       const selectedSet = new Set(selectedIds);
 
       for (const m of allMatches) {

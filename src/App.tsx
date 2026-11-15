@@ -125,6 +125,7 @@ export function App() {
       {/* Navigation */}
       <Navbar
         accounts={accounts}
+        orders={orders}
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenNewAccount={() => setIsNewAccountOpen(true)}

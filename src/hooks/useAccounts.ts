@@ -14,6 +14,8 @@ import {
   mergeFeaturedCrops,
   recordDeletedAccount,
   recordDeletedOrder,
+  recordDeletedFruit,
+  recordDeletedFruits,
 } from '../utils/supabaseSync';
 
 const ACCOUNTS_STORAGE_KEY = 'play_together_accounts_v4';
@@ -70,6 +72,18 @@ export function applyDailyDoneReset(accs: Account[]): { accounts: Account[]; has
   return { accounts: updated, hasChanged };
 }
 
+export function ensureFruitIds(accs: Account[]): Account[] {
+  return (accs || []).map((acc) => ({
+    ...acc,
+    fruits: (acc.fruits || []).map((f, idx) => ({
+      ...f,
+      id: f.id || `fruit_${acc.id}_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 7)}`,
+      variants: f.variants || [],
+      createdAt: f.createdAt || new Date().toISOString(),
+    })),
+  }));
+}
+
 function computeTeamDataHash(data: { accounts: Account[]; orders: FarmOrder[]; featuredCrops: string[] }): string {
   try {
     return JSON.stringify({
@@ -99,14 +113,15 @@ export function useAccounts() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          const { accounts: resetAccs } = applyDailyDoneReset(parsed);
+          const withFruitIds = ensureFruitIds(parsed);
+          const { accounts: resetAccs } = applyDailyDoneReset(withFruitIds);
           return resetAccs;
         }
       }
     } catch (err) {
       console.error('Error loading accounts', err);
     }
-    return INITIAL_ACCOUNTS;
+    return ensureFruitIds(INITIAL_ACCOUNTS);
   });
 
   // Tự động kiểm tra và hồi 20 lượt done lúc 7h00 sáng mỗi ngày
@@ -488,6 +503,7 @@ export function useAccounts() {
 
   // Xóa một trái cụ thể khỏi tài khoản
   const removeFruitFromAccount = (accountId: string, fruitId: string) => {
+    recordDeletedFruit(fruitId);
     setAccounts((prev) =>
       prev.map((acc) => {
         if (acc.id !== accountId) return acc;
@@ -503,6 +519,18 @@ export function useAccounts() {
   // Hoàn tất đơn hàng: Trừ các trái đã sử dụng trên từng tài khoản, đồng thời trừ 1 vé và 1 thẻ/lượt done
   // deductionMap: { [accountId]: [fruitId1, fruitId2, ...] }
   const fulfillOrderDeduction = (deductionMap: Record<string, string[]>) => {
+    // 1. Lưu tombstone tất cả ID trái đã bị trừ để Cloud Sync KHÔNG BAO GIỜ hồi sinh lại
+    const allRemovedFruitIds: string[] = [];
+    Object.values(deductionMap).forEach((ids) => {
+      if (Array.isArray(ids)) {
+        allRemovedFruitIds.push(...ids.filter(Boolean));
+      }
+    });
+    if (allRemovedFruitIds.length > 0) {
+      recordDeletedFruits(allRemovedFruitIds);
+    }
+
+    // 2. Cập nhật state accounts
     setAccounts((prev) =>
       prev.map((acc) => {
         const toRemoveIds = deductionMap[acc.id];
@@ -522,12 +550,14 @@ export function useAccounts() {
           newGiftCards -= 1;
         }
 
+        const remainingFruits = (acc.fruits || []).filter((f) => !removeSet.has(f.id));
+
         return {
           ...acc,
           tickets: newTickets,
           dailyDones: newDailyDones,
           giftCards: newGiftCards,
-          fruits: acc.fruits.filter((f) => !removeSet.has(f.id)),
+          fruits: remainingFruits,
           updatedAt: new Date().toISOString(),
         };
       })
