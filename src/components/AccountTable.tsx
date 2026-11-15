@@ -79,7 +79,7 @@ export const AccountTable: React.FC<AccountTableProps> = ({
           <thead>
             <tr className="border-b border-slate-200 dark:border-[#2B2F3A] bg-[#F7F8FA] dark:bg-[#16171B] text-xs font-bold text-slate-500 dark:text-[#8e95a5] uppercase tracking-wider">
               <th className="py-4 px-6 min-w-[240px]">
-                Tài khoản · Tình trạng
+                Tên Game · ID Game
               </th>
 
               <th className="py-4 px-4 text-center min-w-[80px]" title="Level / Cấp sao">
@@ -107,6 +107,13 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                 <span className="flex items-center justify-center gap-1">
                   <span>🎫</span>
                   <span>Vé</span>
+                </span>
+              </th>
+
+              <th className="py-4 px-3 text-center min-w-[110px]" title="Lượt Done (Hồi 20 lượt lúc 7h sáng mỗi ngày) & Thẻ tặng">
+                <span className="flex items-center justify-center gap-1 text-purple-600 dark:text-purple-400 font-black">
+                  <span>🎯</span>
+                  <span>Done / Thẻ</span>
                 </span>
               </th>
 
@@ -165,7 +172,7 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                   key={acc.id}
                   className="hover:bg-slate-50 dark:hover:bg-[#23262D] transition-colors group"
                 >
-                  {/* Account Name & Info (Clicking opens AccountInfoModal) */}
+                  {/* Account Name & Info: Ẩn tên đăng nhập, Hiện Tên Game & ID Game */}
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       {/* Avatar */}
@@ -173,65 +180,60 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                         onClick={() => onOpenAccountInfo(acc)}
                         className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shadow cursor-pointer hover:scale-105 active:scale-95 transition-transform ${avatarBg}`}
                       >
-                        {initialLetter}
+                        {(acc.characterName || acc.username || 'P').charAt(0).toUpperCase()}
                       </div>
 
                       <div>
-                        {/* Clickable Username */}
+                        {/* Tên Game / Tên Nhân Vật */}
                         <div
                           onClick={() => onOpenAccountInfo(acc)}
-                          className="font-extrabold text-slate-800 dark:text-slate-100 hover:text-sky-500 dark:hover:text-cyan-400 cursor-pointer flex items-center gap-2 transition-colors"
-                          title="Bấm vào để xem & chỉnh sửa Tên, Mật khẩu, Role ID"
+                          className="font-black text-slate-800 dark:text-slate-100 hover:text-sky-500 dark:hover:text-cyan-400 cursor-pointer flex items-center gap-2 transition-colors text-sm sm:text-base tracking-tight"
+                          title="Bấm vào để xem & chỉnh sửa thông tin tài khoản"
                         >
-                          <span>{acc.username}</span>
-                          {acc.characterName && acc.characterName !== acc.username && (
-                            <span className="text-xs text-slate-400 dark:text-[#8e95a5] font-normal">
-                              ({acc.characterName})
-                            </span>
-                          )}
+                          <span>{acc.characterName || 'Chưa đặt tên NV'}</span>
                         </div>
 
-                        {/* Status & Role ID */}
-                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-[#8e95a5] mt-0.5">
+                        {/* ID Game & Trạng thái */}
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-[#8e95a5] mt-1">
+                          <button
+                            onClick={(e) => handleCopyRoleId(e, acc.roleId)}
+                            title="Bấm để sao chép ID Game (Role ID)"
+                            className="font-mono text-xs text-sky-600 dark:text-cyan-400 font-extrabold flex items-center gap-1.5 bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/60 px-2 py-0.5 rounded-lg border border-sky-200 dark:border-sky-800 transition-colors"
+                          >
+                            <span>ID: {acc.roleId || 'No ID'}</span>
+                            {copiedId === acc.roleId ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-500" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5 text-sky-400" />
+                            )}
+                          </button>
+
+                          <span>·</span>
+
                           {acc.status === 'active' && (
-                            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+                            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-[11px]">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                               Vào được
                             </span>
                           )}
                           {acc.status === 'banned' && (
-                            <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-bold">
+                            <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-bold text-[11px]">
                               <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                               Bị khóa
                             </span>
                           )}
                           {acc.status === 'wrong_pw' && (
-                            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
+                            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold text-[11px]">
                               <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                               Sai mật khẩu
                             </span>
                           )}
                           {acc.status === 'pending' && (
-                            <span className="flex items-center gap-1 text-slate-400 font-medium">
+                            <span className="flex items-center gap-1 text-slate-400 font-medium text-[11px]">
                               <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                              Chưa kiểm tra
+                              Chưa test
                             </span>
                           )}
-
-                          <span>·</span>
-
-                          <button
-                            onClick={(e) => handleCopyRoleId(e, acc.roleId)}
-                            title="Bấm để sao chép Role ID"
-                            className="font-mono text-[11px] text-slate-600 dark:text-[#9a9fa8] hover:text-sky-600 dark:hover:text-white flex items-center gap-1 bg-slate-100 dark:bg-[#252830] px-2 py-0.5 rounded-md transition-colors"
-                          >
-                            <span>{acc.roleId || 'No ID'}</span>
-                            {copiedId === acc.roleId ? (
-                              <Check className="w-3 h-3 text-emerald-500" />
-                            ) : (
-                              <Copy className="w-3 h-3 text-slate-400" />
-                            )}
-                          </button>
                         </div>
                       </div>
                     </div>
@@ -255,6 +257,26 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                   {/* 🎫 Vé (Tickets) */}
                   <td className="py-4 px-4 text-center text-slate-600 dark:text-slate-300 text-sm font-bold">
                     {formatNumber(acc.tickets)}
+                  </td>
+
+                  {/* 🎯 Lượt Done & Thẻ tặng (Hồi 20 lượt lúc 7h sáng) */}
+                  <td className="py-4 px-3 text-center">
+                    <div className="inline-flex flex-col items-center gap-0.5">
+                      <span
+                        title="Lượt done hôm nay (Tự hồi 20 lượt lúc 7h00 sáng mỗi ngày)"
+                        className="px-2.5 py-1 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 text-xs font-black shadow-2xs"
+                      >
+                        🎯 {acc.dailyDones !== undefined ? acc.dailyDones : 20}/20
+                      </span>
+                      {(acc.giftCards || 0) > 0 && (
+                        <span
+                          title="Thẻ tặng làm đơn (người dùng tự nhập, không tự reload)"
+                          className="text-[10px] text-amber-600 dark:text-amber-400 font-black px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/25"
+                        >
+                          + {acc.giftCards} thẻ
+                        </span>
+                      )}
+                    </div>
                   </td>
 
                   {/* 📦 Rương Nông Sản (Clicking opens ChestModal) */}

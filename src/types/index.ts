@@ -20,6 +20,9 @@ export interface Account {
   stars: number;             // ⭐ Level
   gems: number;              // 💎 Kim Cương
   tickets: number;           // 🎫 Vé
+  dailyDones?: number;       // 🎯 Lượt done hàng ngày (mặc định 20, tự hồi về 20 mỗi 7h sáng)
+  giftCards?: number;        // 🎟️ Thẻ tặng làm đơn (người dùng tự nhập, không tự hồi)
+  lastDailyReset?: string;   // Thời điểm gần nhất đã hồi 20 lượt done (ISO String)
   cash?: number;             // 💵 Tiền sao
   gold?: number;             // 🪙 Vàng
   fruits: HarvestedFruit[];  // Danh sách từng trái đã thu hoạch trong rương

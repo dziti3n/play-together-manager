@@ -1,6 +1,7 @@
 import React from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, Sparkles, Eye } from 'lucide-react';
 import { Account, StatusFilter } from '../types';
+import { PLAY_TOGETHER_CROPS, PLAY_TOGETHER_VARIANTS } from '../data/initialData';
 
 interface FilterBarProps {
   accounts: Account[];
@@ -11,6 +12,14 @@ interface FilterBarProps {
   numericField: string;
   numericValue: number | null;
   onNumericFilterChange: (field: any, val: number | null) => void;
+  // Bộ lọc trái + biến thể nhanh (giống phần chi tiết đơn hàng)
+  selectedFruit: string;
+  onSelectFruit: (crop: string) => void;
+  selectedVariant: string;
+  onSelectVariant: (variant: string) => void;
+  onOpenFruitInspect?: () => void;
+  totalMatchingFruits?: number;
+  totalMatchingAccounts?: number;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
@@ -22,6 +31,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   numericField,
   numericValue,
   onNumericFilterChange,
+  selectedFruit = 'all',
+  onSelectFruit,
+  selectedVariant = 'all',
+  onSelectVariant,
+  onOpenFruitInspect,
+  totalMatchingFruits = 0,
+  totalMatchingAccounts = 0,
 }) => {
   const countAll = accounts.length;
   const countActive = accounts.filter((a) => a.status === 'active').length;
@@ -99,6 +115,76 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </button>
           )}
         </div>
+      </div>
+
+      {/* Row 2: Tìm Trái & Biến Thể Nhanh (Giống chi tiết đơn hàng) */}
+      <div className="flex flex-wrap items-center gap-2.5 bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-sky-500/10 p-2.5 rounded-2xl border border-amber-500/20 dark:border-purple-500/20 shadow-xs">
+        <span className="text-xs font-black text-amber-700 dark:text-amber-400 flex items-center gap-1.5 pl-1">
+          <span>🌾</span>
+          <span>Tìm Nông Sản &amp; Biến Thể:</span>
+        </span>
+
+        {/* Chọn Cây / Trái */}
+        <select
+          value={selectedFruit}
+          onChange={(e) => onSelectFruit(e.target.value)}
+          className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#1E2026] text-xs font-bold text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-[#2C2F3A] focus:outline-none focus:border-amber-500 cursor-pointer shadow-2xs"
+        >
+          <option value="all">Tất cả nông sản (41 loại)</option>
+          {PLAY_TOGETHER_CROPS.map((c) => (
+            <option key={c.name} value={c.name}>
+              {c.emoji || '🍎'} {c.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Chọn Biến Thể */}
+        <select
+          value={selectedVariant}
+          onChange={(e) => onSelectVariant(e.target.value)}
+          className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#1E2026] text-xs font-bold text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-[#2C2F3A] focus:outline-none focus:border-purple-500 cursor-pointer shadow-2xs"
+        >
+          <option value="all">Tất cả biến thể (Mọi trái)</option>
+          <option value="normal">⚪ Trái thường (Không đột biến)</option>
+          {PLAY_TOGETHER_VARIANTS.map((v) => (
+            <option key={v.name} value={v.name}>
+              ✨ {v.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Nút Xem Chi Tiết Từng Quả (giống chi tiết đơn hàng) */}
+        {(selectedFruit !== 'all' || selectedVariant !== 'all') && (
+          <div className="flex items-center gap-2 ml-auto">
+            <span className="text-xs font-extrabold text-purple-700 dark:text-purple-300">
+              Có: <strong>{totalMatchingFruits ?? 0} quả</strong> trên{' '}
+              <strong>{totalMatchingAccounts ?? 0} acc</strong>
+            </span>
+
+            {onOpenFruitInspect && (
+              <button
+                type="button"
+                onClick={onOpenFruitInspect}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-black shadow-md shadow-purple-600/25 transition-all hover:scale-105 active:scale-95"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Xem chi tiết</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                onSelectFruit('all');
+                onSelectVariant('all');
+              }}
+              title="Xóa bộ lọc nông sản"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Status Filter Chips */}

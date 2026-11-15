@@ -23,6 +23,8 @@ export const NewAccountModal: React.FC<NewAccountModalProps> = ({
   const [stars, setStars] = useState(1);
   const [gems, setGems] = useState(0);
   const [tickets, setTickets] = useState(0);
+  const [dailyDones, setDailyDones] = useState(20);
+  const [giftCards, setGiftCards] = useState(0);
   const [cash, setCash] = useState(0);
   const [note, setNote] = useState('');
 
@@ -39,6 +41,9 @@ export const NewAccountModal: React.FC<NewAccountModalProps> = ({
       stars: Math.max(1, Number(stars) || 1),
       gems: Math.max(0, Number(gems) || 0),
       tickets: Math.max(0, Number(tickets) || 0),
+      dailyDones: Math.min(20, Math.max(0, Number(dailyDones) || 20)),
+      giftCards: Math.max(0, Number(giftCards) || 0),
+      lastDailyReset: new Date().toISOString(),
       cash: Math.max(0, Number(cash) || 0),
       fruits: [], // Rương ban đầu trống
       note: note.trim(),
@@ -185,6 +190,29 @@ export const NewAccountModal: React.FC<NewAccountModalProps> = ({
                   value={tickets}
                   onChange={(e) => setTickets(Number(e.target.value))}
                   className="w-full px-2 py-1.5 rounded-xl bg-white dark:bg-[#22242a] text-xs font-black text-center text-sky-600 dark:text-sky-300 border border-[#E8E2D5] dark:border-[#323640]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-purple-500 mb-0.5">🎯 Lượt Done</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={20}
+                  value={dailyDones}
+                  onChange={(e) => setDailyDones(Number(e.target.value))}
+                  className="w-full px-2 py-1.5 rounded-xl bg-white dark:bg-[#22242a] text-xs font-black text-center text-purple-600 dark:text-purple-300 border border-[#E8E2D5] dark:border-[#323640]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-amber-500 mb-0.5">🎟️ Thẻ tặng</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={giftCards}
+                  onChange={(e) => setGiftCards(Number(e.target.value))}
+                  className="w-full px-2 py-1.5 rounded-xl bg-white dark:bg-[#22242a] text-xs font-black text-center text-amber-600 dark:text-amber-300 border border-[#E8E2D5] dark:border-[#323640]"
                 />
               </div>
             </div>

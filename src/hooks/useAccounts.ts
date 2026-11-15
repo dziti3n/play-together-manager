@@ -25,6 +25,51 @@ export function getTotalFruits(account: Account): number {
   return account.fruits ? account.fruits.length : 0;
 }
 
+/**
+ * Kiểm tra xem đã qua 7h00 sáng kể từ lần reset trước chưa
+ * (Khung giờ hồi lượt 7:00 AM mỗi ngày của game Play Together)
+ */
+export function shouldResetDailyDones(lastResetIso?: string): boolean {
+  if (!lastResetIso) return true;
+  const lastReset = new Date(lastResetIso).getTime();
+  if (isNaN(lastReset)) return true;
+
+  const now = new Date();
+  const today7AM = new Date(now);
+  today7AM.setHours(7, 0, 0, 0);
+
+  let targetResetTime: number;
+  if (now.getTime() >= today7AM.getTime()) {
+    targetResetTime = today7AM.getTime();
+  } else {
+    targetResetTime = today7AM.getTime() - 24 * 60 * 60 * 1000;
+  }
+
+  return lastReset < targetResetTime;
+}
+
+export function applyDailyDoneReset(accs: Account[]): { accounts: Account[]; hasChanged: boolean } {
+  let hasChanged = false;
+  const nowIso = new Date().toISOString();
+  const updated = (accs || []).map((acc) => {
+    const needsReset = shouldResetDailyDones(acc.lastDailyReset);
+    const missingDailyDones = acc.dailyDones === undefined;
+    const missingGiftCards = acc.giftCards === undefined;
+
+    if (needsReset || missingDailyDones || missingGiftCards) {
+      hasChanged = true;
+      return {
+        ...acc,
+        dailyDones: needsReset ? 20 : (acc.dailyDones !== undefined ? acc.dailyDones : 20),
+        giftCards: acc.giftCards !== undefined ? acc.giftCards : 0,
+        lastDailyReset: needsReset ? nowIso : (acc.lastDailyReset || nowIso),
+      };
+    }
+    return acc;
+  });
+  return { accounts: updated, hasChanged };
+}
+
 function computeTeamDataHash(data: { accounts: Account[]; orders: FarmOrder[]; featuredCrops: string[] }): string {
   try {
     return JSON.stringify({
@@ -51,12 +96,31 @@ export function useAccounts() {
   const [accounts, setAccounts] = useState<Account[]>(() => {
     try {
       const saved = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const { accounts: resetAccs } = applyDailyDoneReset(parsed);
+          return resetAccs;
+        }
+      }
     } catch (err) {
       console.error('Error loading accounts', err);
     }
     return INITIAL_ACCOUNTS;
   });
+
+  // Tự động kiểm tra và hồi 20 lượt done lúc 7h00 sáng mỗi ngày
+  useEffect(() => {
+    const checkAndReset = () => {
+      setAccounts((prev) => {
+        const { accounts: updated, hasChanged } = applyDailyDoneReset(prev);
+        return hasChanged ? updated : prev;
+      });
+    };
+    checkAndReset();
+    const interval = setInterval(checkAndReset, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [orders, setOrders] = useState<FarmOrder[]>(() => {
     try {
@@ -371,6 +435,9 @@ export function useAccounts() {
   const addAccount = (accountData: Omit<Account, 'id' | 'updatedAt'>) => {
     const newAccount: Account = {
       ...accountData,
+      dailyDones: accountData.dailyDones !== undefined ? accountData.dailyDones : 20,
+      giftCards: accountData.giftCards !== undefined ? accountData.giftCards : 0,
+      lastDailyReset: accountData.lastDailyReset || new Date().toISOString(),
       id: 'acc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
       updatedAt: new Date().toISOString(),
     };
@@ -433,7 +500,7 @@ export function useAccounts() {
     );
   };
 
-  // Hoàn tất đơn hàng: Trừ các trái đã sử dụng trên từng tài khoản
+  // Hoàn tất đơn hàng: Trừ các trái đã sử dụng trên từng tài khoản, đồng thời trừ 1 vé và 1 thẻ/lượt done
   // deductionMap: { [accountId]: [fruitId1, fruitId2, ...] }
   const fulfillOrderDeduction = (deductionMap: Record<string, string[]>) => {
     setAccounts((prev) =>
@@ -441,8 +508,25 @@ export function useAccounts() {
         const toRemoveIds = deductionMap[acc.id];
         if (!toRemoveIds || toRemoveIds.length === 0) return acc;
         const removeSet = new Set(toRemoveIds);
+
+        // Trừ 1 vé (-1 vé)
+        const newTickets = Math.max(0, (acc.tickets || 0) - 1);
+
+        // Trừ 1 lượt done / thẻ: ưu tiên lượt done hàng ngày (20 lượt) trước, hết thì trừ thẻ tặng
+        let newDailyDones = acc.dailyDones !== undefined ? acc.dailyDones : 20;
+        let newGiftCards = acc.giftCards !== undefined ? acc.giftCards : 0;
+
+        if (newDailyDones > 0) {
+          newDailyDones -= 1;
+        } else if (newGiftCards > 0) {
+          newGiftCards -= 1;
+        }
+
         return {
           ...acc,
+          tickets: newTickets,
+          dailyDones: newDailyDones,
+          giftCards: newGiftCards,
           fruits: acc.fruits.filter((f) => !removeSet.has(f.id)),
           updatedAt: new Date().toISOString(),
         };

@@ -206,6 +206,35 @@ export const AccountInfoModal: React.FC<AccountInfoModalProps> = ({
             </div>
           </div>
 
+          {/* Lượt Done & Thẻ Tặng */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="p-2.5 rounded-2xl bg-purple-500/5 dark:bg-purple-950/20 border border-purple-500/20 text-center">
+              <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 block" title="Tự hồi 20 lượt lúc 7h00 sáng mỗi ngày">
+                🎯 Lượt Done (0-20)
+              </span>
+              <input
+                type="number"
+                min={0}
+                max={20}
+                value={formData.dailyDones !== undefined ? formData.dailyDones : 20}
+                onChange={(e) => setFormData({ ...formData, dailyDones: Math.min(20, Math.max(0, Number(e.target.value))) })}
+                className="w-full text-center font-black text-purple-600 dark:text-purple-300 bg-transparent text-sm focus:outline-none"
+              />
+            </div>
+            <div className="p-2.5 rounded-2xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/20 text-center">
+              <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 block" title="Thẻ tặng làm đơn (người dùng tự nhập, không tự hồi)">
+                🎟️ Thẻ tặng làm đơn
+              </span>
+              <input
+                type="number"
+                min={0}
+                value={formData.giftCards !== undefined ? formData.giftCards : 0}
+                onChange={(e) => setFormData({ ...formData, giftCards: Math.max(0, Number(e.target.value)) })}
+                className="w-full text-center font-black text-amber-600 dark:text-amber-300 bg-transparent text-sm focus:outline-none"
+              />
+            </div>
+          </div>
+
           {/* Note */}
           <div>
             <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
