@@ -42,6 +42,9 @@ export function App() {
     cloudConfig,
     setCloudConfig,
     reconnectCloud,
+    manualSync,
+    isSyncing,
+    syncFeedback,
   } = useAccounts();
 
   // Filter state
@@ -130,6 +133,9 @@ export function App() {
         cloudStatus={cloudStatus}
         cloudRoomId={cloudConfig?.roomId}
         onReconnectCloud={reconnectCloud}
+        onManualSync={manualSync}
+        isSyncing={isSyncing}
+        syncFeedback={syncFeedback}
       />
 
       {/* Main Container */}

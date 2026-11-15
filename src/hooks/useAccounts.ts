@@ -9,6 +9,11 @@ import {
   pushRemoteTeamData,
   subscribeToTeamRoom,
   ConnectionStatus,
+  mergeAccounts,
+  mergeOrders,
+  mergeFeaturedCrops,
+  recordDeletedAccount,
+  recordDeletedOrder,
 } from '../utils/supabaseSync';
 
 const ACCOUNTS_STORAGE_KEY = 'play_together_accounts_v4';
@@ -135,7 +140,10 @@ export function useAccounts() {
   const isInitialSyncedRef = useRef(false);
   const lastSyncedHashRef = useRef<string>('');
 
-  // Hàm tải dữ liệu mới nhất từ Cloud về máy
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+
+  // Hàm tải và Smart Merge dữ liệu mới nhất từ Cloud về máy
   const syncFromRemote = useCallback(async (cfg: SupabaseConfig) => {
     try {
       setCloudStatus('CONNECTING');
@@ -144,22 +152,43 @@ export function useAccounts() {
       if (result.data) {
         // Có dữ liệu phòng trên Cloud
         const remote = result.data;
+        
+        // SMART MERGE: Trộn thông minh dữ liệu máy này với Cloud
+        // Giữ lại cả tài khoản máy này vừa tạo lúc mất mạng VÀ tài khoản người kia vừa tạo!
+        const mergedAccounts = mergeAccounts(accounts, remote.accounts);
+        const mergedOrders = mergeOrders(orders, remote.orders);
+        const mergedCrops = mergeFeaturedCrops(featuredCrops, remote.featured_crops);
+
+        const mergedHash = computeTeamDataHash({
+          accounts: mergedAccounts,
+          orders: mergedOrders,
+          featuredCrops: mergedCrops,
+        });
+
+        // Chỉ cập nhật state nếu có sự thay đổi
+        if (mergedHash !== lastSyncedHashRef.current) {
+          isRemoteUpdatingRef.current = true;
+          lastSyncedHashRef.current = mergedHash;
+          setAccounts(mergedAccounts);
+          setOrders(mergedOrders);
+          setFeaturedCrops(mergedCrops);
+          setTimeout(() => {
+            isRemoteUpdatingRef.current = false;
+          }, 600);
+        }
+
+        // Nếu máy này có tài khoản mới tạo lúc offline mà trên Cloud chưa có, đẩy phần gộp lên Cloud luôn
         const remoteHash = computeTeamDataHash({
           accounts: remote.accounts,
           orders: remote.orders,
           featuredCrops: remote.featured_crops,
         });
-
-        // Chỉ cập nhật state nếu dữ liệu trên Cloud khác với bộ nhớ hiện tại
-        if (remoteHash !== lastSyncedHashRef.current) {
-          isRemoteUpdatingRef.current = true;
-          lastSyncedHashRef.current = remoteHash;
-          if (Array.isArray(remote.accounts)) setAccounts(remote.accounts);
-          if (Array.isArray(remote.orders)) setOrders(remote.orders);
-          if (Array.isArray(remote.featured_crops)) setFeaturedCrops(remote.featured_crops);
-          setTimeout(() => {
-            isRemoteUpdatingRef.current = false;
-          }, 600);
+        if (mergedHash !== remoteHash) {
+          await pushRemoteTeamData(cfg, {
+            accounts: mergedAccounts,
+            orders: mergedOrders,
+            featuredCrops: mergedCrops,
+          }, { skipPreMerge: true });
         }
 
         isInitialSyncedRef.current = true;
@@ -170,7 +199,7 @@ export function useAccounts() {
         const currentHash = computeTeamDataHash({ accounts, orders, featuredCrops });
         lastSyncedHashRef.current = currentHash;
         isInitialSyncedRef.current = true;
-        await pushRemoteTeamData(cfg, { accounts, orders, featuredCrops });
+        await pushRemoteTeamData(cfg, { accounts, orders, featuredCrops }, { skipPreMerge: true });
         setCloudStatus('CONNECTED');
         return true;
       } else {
@@ -269,7 +298,21 @@ export function useAccounts() {
     const timer = setTimeout(async () => {
       if (isRemoteUpdatingRef.current) return;
       lastSyncedHashRef.current = currentHash;
-      await pushRemoteTeamData(cloudConfig, { accounts, orders, featuredCrops });
+      const res = await pushRemoteTeamData(cloudConfig, { accounts, orders, featuredCrops });
+      // Nếu có sự hợp nhất từ Cloud (Cloud có thêm tài khoản mới do bạn đời tạo), cập nhật luôn vào máy này
+      if (res.mergedData) {
+        const mergedHash = computeTeamDataHash(res.mergedData);
+        if (mergedHash !== currentHash) {
+          isRemoteUpdatingRef.current = true;
+          lastSyncedHashRef.current = mergedHash;
+          setAccounts(res.mergedData.accounts);
+          setOrders(res.mergedData.orders);
+          setFeaturedCrops(res.mergedData.featuredCrops);
+          setTimeout(() => {
+            isRemoteUpdatingRef.current = false;
+          }, 600);
+        }
+      }
     }, 400);
 
     return () => clearTimeout(timer);
@@ -278,6 +321,25 @@ export function useAccounts() {
   const reconnectCloud = useCallback(() => {
     if (cloudConfig) {
       syncFromRemote(cloudConfig);
+    }
+  }, [cloudConfig, syncFromRemote]);
+
+  // Nút bấm Làm Mới / Đồng Bộ thủ công cho người dùng
+  const manualSync = useCallback(async () => {
+    if (!cloudConfig) return;
+    setIsSyncing(true);
+    try {
+      const ok = await syncFromRemote(cloudConfig);
+      if (ok) {
+        setSyncFeedback('Đã đồng bộ');
+      } else {
+        setSyncFeedback('Mất mạng');
+      }
+    } finally {
+      setTimeout(() => {
+        setIsSyncing(false);
+        setTimeout(() => setSyncFeedback(null), 2500);
+      }, 500);
     }
   }, [cloudConfig, syncFromRemote]);
 
@@ -319,6 +381,7 @@ export function useAccounts() {
   };
 
   const deleteAccount = (id: string) => {
+    recordDeletedAccount(id);
     setAccounts((prev) => prev.filter((acc) => acc.id !== id));
   };
 
@@ -393,6 +456,7 @@ export function useAccounts() {
   };
 
   const deleteOrder = (orderId: string) => {
+    recordDeletedOrder(orderId);
     setOrders((prev) => prev.filter((o) => o.id !== orderId));
   };
 
@@ -487,5 +551,8 @@ export function useAccounts() {
     cloudConfig,
     setCloudConfig,
     reconnectCloud,
+    manualSync,
+    isSyncing,
+    syncFeedback,
   };
 }

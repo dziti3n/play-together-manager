@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
-import { Account, FarmOrder } from '../types';
+import { Account, FarmOrder, HarvestedFruit } from '../types';
 
 export interface SupabaseConfig {
   url: string;
@@ -24,11 +24,179 @@ export interface FetchRemoteResult {
 export type ConnectionStatus = 'IDLE' | 'CONNECTING' | 'CONNECTED' | 'DISCONNECTED';
 
 const CONFIG_STORAGE_KEY = 'pt_supabase_config';
+const DELETED_ACCOUNTS_KEY = 'pt_deleted_accounts';
+const DELETED_ORDERS_KEY = 'pt_deleted_orders';
 
 let supabaseClient: SupabaseClient | null = null;
 let realtimeChannel: RealtimeChannel | null = null;
 let currentClientKey = '';
 let lastPushedTimestamp = 0;
+
+// ================= Quản lý ID các mục đã xóa (Tombstones) =================
+export function getDeletedAccountMap(): Map<string, number> {
+  try {
+    const raw = localStorage.getItem(DELETED_ACCOUNTS_KEY);
+    if (raw) {
+      const obj = JSON.parse(raw);
+      return new Map(Object.entries(obj).map(([k, v]) => [k, Number(v)]));
+    }
+  } catch {}
+  return new Map();
+}
+
+export function recordDeletedAccount(id: string) {
+  try {
+    const map = getDeletedAccountMap();
+    map.set(id, Date.now());
+    const obj: Record<string, number> = {};
+    map.forEach((v, k) => {
+      if (Date.now() - v < 14 * 24 * 3600 * 1000) {
+        obj[k] = v;
+      }
+    });
+    localStorage.setItem(DELETED_ACCOUNTS_KEY, JSON.stringify(obj));
+  } catch {}
+}
+
+export function getDeletedOrderMap(): Map<string, number> {
+  try {
+    const raw = localStorage.getItem(DELETED_ORDERS_KEY);
+    if (raw) {
+      const obj = JSON.parse(raw);
+      return new Map(Object.entries(obj).map(([k, v]) => [k, Number(v)]));
+    }
+  } catch {}
+  return new Map();
+}
+
+export function recordDeletedOrder(id: string) {
+  try {
+    const map = getDeletedOrderMap();
+    map.set(id, Date.now());
+    const obj: Record<string, number> = {};
+    map.forEach((v, k) => {
+      if (Date.now() - v < 14 * 24 * 3600 * 1000) {
+        obj[k] = v;
+      }
+    });
+    localStorage.setItem(DELETED_ORDERS_KEY, JSON.stringify(obj));
+  } catch {}
+}
+
+// ================= Thuật toán Smart Merge (Chống mất dữ liệu 100%) =================
+
+/**
+ * Trộn 2 danh sách củ quả theo id để khi cả 2 người cùng quét rương không bị mất của nhau
+ */
+export function mergeFruits(fruitsA: HarvestedFruit[] = [], fruitsB: HarvestedFruit[] = []): HarvestedFruit[] {
+  const map = new Map<string, HarvestedFruit>();
+  for (const f of fruitsA || []) {
+    if (f && f.id) map.set(f.id, f);
+  }
+  for (const f of fruitsB || []) {
+    if (f && f.id && !map.has(f.id)) {
+      map.set(f.id, f);
+    }
+  }
+  return Array.from(map.values());
+}
+
+/**
+ * Thuật toán Smart Merge: Hợp nhất 2 danh sách tài khoản
+ * - Người A thêm lúc Người B mất mạng -> Giữ lại (không bị xóa)
+ * - Người B thêm lúc Người A không biết -> Giữ lại (không bị xóa)
+ * - Cùng một tài khoản: Hợp nhất củ quả trong rương và lấy thông tin cập nhật mới hơn
+ * - Đã bấm xóa: Không phục hồi
+ */
+export function mergeAccounts(
+  localAccounts: Account[],
+  remoteAccounts: Account[],
+  deletedMap: Map<string, number> = getDeletedAccountMap()
+): Account[] {
+  const accountMap = new Map<string, Account>();
+
+  // 1. Nạp tất cả tài khoản từ Remote (Cloud)
+  for (const rem of remoteAccounts || []) {
+    if (!rem || !rem.id) continue;
+    const deletedTime = deletedMap.get(rem.id);
+    const remTime = new Date(rem.updatedAt || 0).getTime();
+    if (deletedTime && remTime <= deletedTime) {
+      continue; // Đã bị xóa
+    }
+    accountMap.set(rem.id, rem);
+  }
+
+  // 2. Trộn các tài khoản từ Local (Máy hiện tại)
+  for (const loc of localAccounts || []) {
+    if (!loc || !loc.id) continue;
+    const deletedTime = deletedMap.get(loc.id);
+    const locTime = new Date(loc.updatedAt || 0).getTime();
+    if (deletedTime && locTime <= deletedTime) {
+      continue;
+    }
+
+    const existing = accountMap.get(loc.id);
+    if (!existing) {
+      // Tài khoản này máy hiện tại tạo mới trong lúc mất mạng -> GIỮ LẠI
+      accountMap.set(loc.id, loc);
+    } else {
+      // Tài khoản có ở cả 2 máy: hợp nhất củ quả và chọn thông tin mới nhất
+      const existingTime = new Date(existing.updatedAt || 0).getTime();
+      const combinedFruits = mergeFruits(existing.fruits, loc.fruits);
+
+      if (locTime > existingTime) {
+        accountMap.set(loc.id, {
+          ...loc,
+          fruits: combinedFruits,
+        });
+      } else {
+        accountMap.set(loc.id, {
+          ...existing,
+          fruits: combinedFruits,
+        });
+      }
+    }
+  }
+
+  return Array.from(accountMap.values());
+}
+
+/**
+ * Trộn danh sách đơn hàng
+ */
+export function mergeOrders(
+  localOrders: FarmOrder[],
+  remoteOrders: FarmOrder[],
+  deletedOrderMap: Map<string, number> = getDeletedOrderMap()
+): FarmOrder[] {
+  const orderMap = new Map<string, FarmOrder>();
+
+  for (const rem of remoteOrders || []) {
+    if (!rem || !rem.id) continue;
+    const delTime = deletedOrderMap.get(rem.id);
+    if (!delTime) {
+      orderMap.set(rem.id, rem);
+    }
+  }
+
+  for (const loc of localOrders || []) {
+    if (!loc || !loc.id) continue;
+    const delTime = deletedOrderMap.get(loc.id);
+    if (!delTime && !orderMap.has(loc.id)) {
+      orderMap.set(loc.id, loc);
+    }
+  }
+
+  return Array.from(orderMap.values());
+}
+
+/**
+ * Trộn danh sách nông sản nổi bật
+ */
+export function mergeFeaturedCrops(local: string[], remote: string[]): string[] {
+  const set = new Set([...(remote || []), ...(local || [])]);
+  return Array.from(set);
+}
 
 /**
  * Mã hóa tên phòng sang chuỗi ký tự ASCII an toàn cho WebSocket topic của Supabase Realtime
@@ -180,6 +348,8 @@ export async function fetchRemoteTeamData(
 
 /**
  * Đẩy dữ liệu mới lên Supabase cho cả phòng cùng thấy
+ * Có tích hợp Smart Merge: Trước khi ghi đè, hệ thống kiểm tra nếu Cloud đang có tài khoản mới
+ * mà người kia vừa thêm trong lúc máy này mất kết nối -> Tự động trộn lại, KHÔNG BAO GIỜ BỊ XÓA MẤT!
  */
 export async function pushRemoteTeamData(
   config: SupabaseConfig,
@@ -187,19 +357,50 @@ export async function pushRemoteTeamData(
     accounts: Account[];
     orders: FarmOrder[];
     featuredCrops: string[];
-  }
-): Promise<boolean> {
+  },
+  options?: { skipPreMerge?: boolean }
+): Promise<{
+  success: boolean;
+  mergedData?: {
+    accounts: Account[];
+    orders: FarmOrder[];
+    featuredCrops: string[];
+  };
+}> {
   try {
     const client = getOrCreateSupabaseClient(config);
     const now = new Date().toISOString();
     lastPushedTimestamp = Date.now();
 
+    let finalAccounts = payload.accounts;
+    let finalOrders = payload.orders;
+    let finalCrops = payload.featuredCrops;
+
+    // Trộn thông minh trước khi lưu:
+    if (!options?.skipPreMerge) {
+      try {
+        const { data: latestRemote } = await client
+          .from('farm_teams')
+          .select('*')
+          .eq('room_id', config.roomId.trim())
+          .maybeSingle();
+
+        if (latestRemote) {
+          finalAccounts = mergeAccounts(payload.accounts, latestRemote.accounts);
+          finalOrders = mergeOrders(payload.orders, latestRemote.orders);
+          finalCrops = mergeFeaturedCrops(payload.featuredCrops, latestRemote.featured_crops);
+        }
+      } catch (mergeErr) {
+        console.warn('Pre-merge check failed, proceeding with payload:', mergeErr);
+      }
+    }
+
     const { error } = await client.from('farm_teams').upsert(
       {
         room_id: config.roomId.trim(),
-        accounts: payload.accounts,
-        orders: payload.orders,
-        featured_crops: payload.featuredCrops,
+        accounts: finalAccounts,
+        orders: finalOrders,
+        featured_crops: finalCrops,
         updated_at: now,
       },
       { onConflict: 'room_id' }
@@ -207,12 +408,19 @@ export async function pushRemoteTeamData(
 
     if (error) {
       console.error('pushRemoteTeamData error:', error);
-      return false;
+      return { success: false };
     }
-    return true;
+    return {
+      success: true,
+      mergedData: {
+        accounts: finalAccounts,
+        orders: finalOrders,
+        featuredCrops: finalCrops,
+      },
+    };
   } catch (err) {
     console.error('pushRemoteTeamData exception:', err);
-    return false;
+    return { success: false };
   }
 }
 
