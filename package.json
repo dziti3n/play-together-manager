@@ -1,7 +1,7 @@
 {
   "name": "play-together-manager",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Ứng dụng quản lý tài khoản và nông trại Play Together đa nền tảng không cần server",
   "type": "module",
   "scripts": {
