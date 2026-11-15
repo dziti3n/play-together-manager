@@ -1,5 +1,5 @@
 import React from 'react';
-import { Moon, Sun, Plus, Download, ClipboardList, Smartphone, Cloud, RefreshCw } from 'lucide-react';
+import { Moon, Sun, Plus, Download, ClipboardList, Smartphone, Cloud, RefreshCw, Search } from 'lucide-react';
 import { Account } from '../types';
 import { CropImage } from './CropImage';
 
@@ -10,6 +10,7 @@ interface NavbarProps {
   onOpenNewAccount: () => void;
   onOpenBackup: () => void;
   onOpenFarmOrder: () => void;
+  onOpenFruitSearch?: () => void;
   onOpenConnectMobile: () => void;
   onOpenCloudSync: () => void;
   isCloudConnected?: boolean;
@@ -28,6 +29,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenNewAccount,
   onOpenBackup,
   onOpenFarmOrder,
+  onOpenFruitSearch,
   onOpenConnectMobile,
   onOpenCloudSync,
   isCloudConnected = false,
@@ -81,6 +83,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             <ClipboardList className="w-4 h-4" />
             <span>Làm Đơn Nông Trại</span>
           </button>
+
+          {/* Tìm Nông Sản & Biến Thể Button */}
+          {onOpenFruitSearch && (
+            <button
+              onClick={onOpenFruitSearch}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white text-xs sm:text-sm font-black shadow-lg shadow-orange-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              title="Tìm kiếm củ/quả & biến thể nhanh trên toàn bộ tài khoản"
+            >
+              <Search className="w-4 h-4" />
+              <span className="hidden sm:inline">Tìm Nông Sản</span>
+            </button>
+          )}
 
           {/* Theme toggle */}
           <button

@@ -11,7 +11,7 @@ import { ImportExportModal } from './components/ImportExportModal';
 import { FeaturedCropsModal } from './components/FeaturedCropsModal';
 import { ConnectMobileModal } from './components/ConnectMobileModal';
 import { CloudSyncModal } from './components/CloudSyncModal';
-import { FruitInspectModal } from './components/FruitInspectModal';
+import { FruitSearchModal } from './components/FruitSearchModal';
 import { useAccounts, getTotalFruits } from './hooks/useAccounts';
 import { useTheme } from './hooks/useTheme';
 import { Account, DetectedFruitItem, HarvestedFruit, StatusFilter } from './types';
@@ -53,8 +53,6 @@ export function App() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [numericField, setNumericField] = useState<string>('none');
   const [numericValue, setNumericValue] = useState<number | null>(null);
-  const [selectedFruit, setSelectedFruit] = useState<string>('all');
-  const [selectedVariant, setSelectedVariant] = useState<string>('all');
 
   // Modals state
   const [infoAccount, setInfoAccount] = useState<Account | null>(null);
@@ -67,42 +65,10 @@ export function App() {
   const [isFeaturedModalOpen, setIsFeaturedModalOpen] = useState(false);
   const [isConnectMobileOpen, setIsConnectMobileOpen] = useState(false);
   const [isCloudSyncOpen, setIsCloudSyncOpen] = useState(false);
-  const [isFruitInspectOpen, setIsFruitInspectOpen] = useState(false);
+  const [isFruitSearchOpen, setIsFruitSearchOpen] = useState(false);
+  const [searchInitialFruit, setSearchInitialFruit] = useState<string | null>(null);
 
-  // Đếm tổng số quả và tài khoản khớp bộ lọc nông sản & biến thể
-  const { totalMatchingFruits, totalMatchingAccounts } = useMemo(() => {
-    if (selectedFruit === 'all' && selectedVariant === 'all') {
-      return { totalMatchingFruits: 0, totalMatchingAccounts: 0 };
-    }
-    let fruitCount = 0;
-    let accCount = 0;
-    for (const acc of accounts) {
-      let accMatches = 0;
-      for (const f of acc.fruits || []) {
-        if (selectedFruit !== 'all' && f.fruitName.toLowerCase() !== selectedFruit.toLowerCase()) {
-          continue;
-        }
-        let isMatch = false;
-        if (selectedVariant === 'all') {
-          isMatch = true;
-        } else if (selectedVariant === 'normal') {
-          isMatch = !f.variants || f.variants.length === 0;
-        } else {
-          isMatch = (f.variants || []).some(
-            (v) => v.toLowerCase() === selectedVariant.toLowerCase()
-          );
-        }
-        if (isMatch) accMatches++;
-      }
-      if (accMatches > 0) {
-        fruitCount += accMatches;
-        accCount++;
-      }
-    }
-    return { totalMatchingFruits: fruitCount, totalMatchingAccounts: accCount };
-  }, [accounts, selectedFruit, selectedVariant]);
-
-  // Filter accounts
+  // Filter accounts (tìm kiếm theo tên nhân vật, role ID, username, trạng thái và level)
   const filteredAccounts = useMemo(() => {
     return accounts.filter((acc) => {
       if (search.trim()) {
@@ -126,24 +92,9 @@ export function App() {
         if (numericField === 'stars' && acc.stars < numericValue) return false;
       }
 
-      // Bộ lọc Nông sản & Biến thể
-      if (selectedFruit !== 'all' || selectedVariant !== 'all') {
-        const hasFruitMatch = (acc.fruits || []).some((f) => {
-          if (selectedFruit !== 'all' && f.fruitName.toLowerCase() !== selectedFruit.toLowerCase()) {
-            return false;
-          }
-          if (selectedVariant === 'all') return true;
-          if (selectedVariant === 'normal') return !f.variants || f.variants.length === 0;
-          return (f.variants || []).some(
-            (v) => v.toLowerCase() === selectedVariant.toLowerCase()
-          );
-        });
-        if (!hasFruitMatch) return false;
-      }
-
       return true;
     });
-  }, [accounts, search, statusFilter, numericField, numericValue, selectedFruit, selectedVariant]);
+  }, [accounts, search, statusFilter, numericField, numericValue]);
 
   // Keep modal accounts synchronized with state
   const currentChestAccount = useMemo(() => {
@@ -179,6 +130,10 @@ export function App() {
         onOpenNewAccount={() => setIsNewAccountOpen(true)}
         onOpenBackup={() => setIsBackupOpen(true)}
         onOpenFarmOrder={() => setIsFarmOrderOpen(true)}
+        onOpenFruitSearch={() => {
+          setSearchInitialFruit(null);
+          setIsFruitSearchOpen(true);
+        }}
         onOpenConnectMobile={() => setIsConnectMobileOpen(true)}
         onOpenCloudSync={() => setIsCloudSyncOpen(true)}
         isCloudConnected={isCloudConnected}
@@ -204,13 +159,10 @@ export function App() {
             setNumericField(field);
             setNumericValue(val);
           }}
-          selectedFruit={selectedFruit}
-          onSelectFruit={setSelectedFruit}
-          selectedVariant={selectedVariant}
-          onSelectVariant={setSelectedVariant}
-          onOpenFruitInspect={() => setIsFruitInspectOpen(true)}
-          totalMatchingFruits={totalMatchingFruits}
-          totalMatchingAccounts={totalMatchingAccounts}
+          onOpenFruitSearch={() => {
+            setSearchInitialFruit(null);
+            setIsFruitSearchOpen(true);
+          }}
         />
 
         <AccountTable
@@ -338,16 +290,16 @@ export function App() {
         />
       )}
 
-      {/* MODAL 10: Fruit & Variant Inspector (Chi tiết nông sản trên các tài khoản) */}
-      {isFruitInspectOpen && (
-        <FruitInspectModal
-          isOpen={isFruitInspectOpen}
-          onClose={() => setIsFruitInspectOpen(false)}
-          fruitName={selectedFruit}
-          variantFilter={selectedVariant}
+      {/* MODAL 10: Tìm Kiếm Nông Sản & Biến Thể (Giống chi tiết đơn hàng) */}
+      {isFruitSearchOpen && (
+        <FruitSearchModal
+          isOpen={isFruitSearchOpen}
+          onClose={() => setIsFruitSearchOpen(false)}
           accounts={accounts}
+          initialFruit={searchInitialFruit}
+          initialVariant="all"
           onOpenChest={(acc) => {
-            setIsFruitInspectOpen(false);
+            setIsFruitSearchOpen(false);
             setChestAccount(acc);
           }}
         />
