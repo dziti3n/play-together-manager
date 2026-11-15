@@ -32,9 +32,9 @@ export function getTotalFruits(account: Account): number {
  * (Khung giờ hồi lượt 7:00 AM mỗi ngày của game Play Together)
  */
 export function shouldResetDailyDones(lastResetIso?: string): boolean {
-  if (!lastResetIso) return true;
+  if (!lastResetIso) return false;
   const lastReset = new Date(lastResetIso).getTime();
-  if (isNaN(lastReset)) return true;
+  if (isNaN(lastReset)) return false;
 
   const now = new Date();
   const today7AM = new Date(now);
@@ -52,19 +52,39 @@ export function shouldResetDailyDones(lastResetIso?: string): boolean {
 
 export function applyDailyDoneReset(accs: Account[]): { accounts: Account[]; hasChanged: boolean } {
   let hasChanged = false;
-  const nowIso = new Date().toISOString();
-  const updated = (accs || []).map((acc) => {
-    const needsReset = shouldResetDailyDones(acc.lastDailyReset);
-    const missingDailyDones = acc.dailyDones === undefined;
-    const missingGiftCards = acc.giftCards === undefined;
+  const now = new Date();
+  const nowIso = now.toISOString();
 
-    if (needsReset || missingDailyDones || missingGiftCards) {
+  const today7AM = new Date(now);
+  today7AM.setHours(7, 0, 0, 0);
+  let latestResetTime = today7AM.getTime();
+  if (now.getTime() < latestResetTime) {
+    latestResetTime -= 24 * 60 * 60 * 1000;
+  }
+
+  const updated = (accs || []).map((acc) => {
+    const lastReset = acc.lastDailyReset ? new Date(acc.lastDailyReset).getTime() : latestResetTime;
+    const needsReset = lastReset < latestResetTime;
+
+    const currentDailyDones = acc.dailyDones !== undefined ? acc.dailyDones : 20;
+    const currentGiftCards = acc.giftCards !== undefined ? acc.giftCards : 0;
+    const missingLastReset = !acc.lastDailyReset;
+
+    if (needsReset) {
       hasChanged = true;
       return {
         ...acc,
-        dailyDones: needsReset ? 20 : (acc.dailyDones !== undefined ? acc.dailyDones : 20),
-        giftCards: acc.giftCards !== undefined ? acc.giftCards : 0,
-        lastDailyReset: needsReset ? nowIso : (acc.lastDailyReset || nowIso),
+        dailyDones: 20,
+        giftCards: currentGiftCards,
+        lastDailyReset: nowIso,
+      };
+    } else if (acc.dailyDones === undefined || acc.giftCards === undefined || missingLastReset) {
+      hasChanged = true;
+      return {
+        ...acc,
+        dailyDones: currentDailyDones,
+        giftCards: currentGiftCards,
+        lastDailyReset: acc.lastDailyReset || nowIso,
       };
     }
     return acc;
@@ -567,6 +587,7 @@ export function useAccounts() {
           tickets: newTickets,
           dailyDones: newDailyDones,
           giftCards: newGiftCards,
+          lastDailyReset: acc.lastDailyReset || new Date().toISOString(),
           fruits: remainingFruits,
           updatedAt: new Date().toISOString(),
         };

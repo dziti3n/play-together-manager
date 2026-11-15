@@ -234,6 +234,26 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                               Chưa test
                             </span>
                           )}
+
+                          <span>·</span>
+
+                          {/* Lượt Done & Thẻ tặng hiển thị trực tiếp ngay dưới tên nhân vật để luôn nhìn thấy trên mọi thiết bị */}
+                          <span
+                            title="Lượt done hôm nay (Tự hồi 20 lượt lúc 7h00 sáng mỗi ngày)"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 font-black text-[11px]"
+                          >
+                            <span>🎯</span>
+                            <span>{acc.dailyDones !== undefined ? acc.dailyDones : 20}/20</span>
+                          </span>
+
+                          {(acc.giftCards || 0) > 0 && (
+                            <span
+                              title="Thẻ tặng làm đơn"
+                              className="text-[10px] text-amber-600 dark:text-amber-400 font-black px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/25"
+                            >
+                              +{acc.giftCards} thẻ
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
