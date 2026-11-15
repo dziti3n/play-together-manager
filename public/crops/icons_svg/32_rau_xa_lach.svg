@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256pt" height="256pt" viewBox="0 0 256 256" version="1.1">
+<defs>
+<linearGradient id="linear0" gradientUnits="userSpaceOnUse" x1="100" y1="44" x2="100" y2="220" >
+<stop offset="0" style="stop-color:rgb(68.235294%,83.529412%,50.588235%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(33.333333%,54.509804%,18.431373%);stop-opacity:1;"/>
+</linearGradient>
+<linearGradient id="linear1" gradientUnits="userSpaceOnUse" x1="156" y1="44" x2="156" y2="220" >
+<stop offset="0" style="stop-color:rgb(68.235294%,83.529412%,50.588235%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(33.333333%,54.509804%,18.431373%);stop-opacity:1;"/>
+</linearGradient>
+<linearGradient id="linear2" gradientUnits="userSpaceOnUse" x1="128" y1="44" x2="128" y2="220" >
+<stop offset="0" style="stop-color:rgb(86.27451%,92.941176%,78.431373%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(40.784314%,62.352941%,21.960784%);stop-opacity:1;"/>
+</linearGradient>
+</defs>
+<g id="surface188">
+<path style="fill-rule:nonzero;fill:url(#linear0);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(18.039216%,34.117647%,9.411765%);stroke-opacity:1;stroke-miterlimit:10;" d="M 152.394531 118.9375 C 164.152344 166.09375 150.226562 210.171875 121.289062 217.386719 C 92.351562 224.601562 59.363281 192.222656 47.605469 145.0625 C 35.847656 97.90625 49.773438 53.828125 78.710938 46.613281 C 107.648438 39.398438 140.636719 71.777344 152.394531 118.9375 "/>
+<path style="fill-rule:nonzero;fill:url(#linear1);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(18.039216%,34.117647%,9.411765%);stroke-opacity:1;stroke-miterlimit:10;" d="M 208.394531 145.0625 C 196.636719 192.222656 163.648438 224.601562 134.710938 217.386719 C 105.773438 210.171875 91.847656 166.09375 103.605469 118.9375 C 115.363281 71.777344 148.351562 39.398438 177.289062 46.613281 C 206.226562 53.828125 220.152344 97.90625 208.394531 145.0625 "/>
+<path style="fill-rule:nonzero;fill:url(#linear2);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(18.039216%,34.117647%,9.411765%);stroke-opacity:1;stroke-miterlimit:10;" d="M 182 132 C 182 180.601562 157.824219 220 128 220 C 98.175781 220 74 180.601562 74 132 C 74 83.398438 98.175781 44 128 44 C 157.824219 44 182 83.398438 182 132 "/>
+<path style="fill:none;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(94.509804%,97.254902%,91.372549%);stroke-opacity:0.75;stroke-miterlimit:10;" d="M 128 78 L 128 214 "/>
+</g>
+</svg>

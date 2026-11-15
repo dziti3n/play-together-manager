@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256pt" height="256pt" viewBox="0 0 256 256" version="1.1">
+<defs>
+<linearGradient id="linear0" gradientUnits="userSpaceOnUse" x1="90" y1="115" x2="166" y2="228" >
+<stop offset="0" style="stop-color:rgb(63.137255%,53.333333%,49.803922%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(36.470588%,25.098039%,21.568627%);stop-opacity:1;"/>
+</linearGradient>
+<radialGradient id="radial0" gradientUnits="userSpaceOnUse" cx="66" cy="86" fx="52.666667" fy="72.666667" r="48" >
+<stop offset="0.1" style="stop-color:rgb(61.176471%,80%,39.607843%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(20%,41.176471%,11.764706%);stop-opacity:1;"/>
+</radialGradient>
+<radialGradient id="radial1" gradientUnits="userSpaceOnUse" cx="170" cy="86" fx="156.666667" fy="72.666667" r="48" >
+<stop offset="0.1" style="stop-color:rgb(61.176471%,80%,39.607843%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(20%,41.176471%,11.764706%);stop-opacity:1;"/>
+</radialGradient>
+<radialGradient id="radial2" gradientUnits="userSpaceOnUse" cx="118" cy="62" fx="100.222222" fy="44.222222" r="64" >
+<stop offset="0.1" style="stop-color:rgb(61.176471%,80%,39.607843%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(20%,41.176471%,11.764706%);stop-opacity:1;"/>
+</radialGradient>
+</defs>
+<g id="surface182">
+<path style="fill-rule:nonzero;fill:url(#linear0);stroke-width:7.5;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(24.313725%,15.294118%,13.72549%);stroke-opacity:1;stroke-miterlimit:10;" d="M 102 115 C 106 165 90 212 82 228 L 174 228 C 166 212 150 165 154 115 Z M 102 115 "/>
+<path style="fill-rule:nonzero;fill:url(#radial0);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(10.588235%,30.196078%,12.54902%);stroke-opacity:1;stroke-miterlimit:10;" d="M 124 96 C 124 114.777344 102.507812 130 76 130 C 49.492188 130 28 114.777344 28 96 C 28 77.222656 49.492188 62 76 62 C 102.507812 62 124 77.222656 124 96 "/>
+<path style="fill-rule:nonzero;fill:url(#radial1);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(10.588235%,30.196078%,12.54902%);stroke-opacity:1;stroke-miterlimit:10;" d="M 228 96 C 228 114.777344 206.507812 130 180 130 C 153.492188 130 132 114.777344 132 96 C 132 77.222656 153.492188 62 180 62 C 206.507812 62 228 77.222656 228 96 "/>
+<path style="fill-rule:nonzero;fill:url(#radial2);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(10.588235%,30.196078%,12.54902%);stroke-opacity:1;stroke-miterlimit:10;" d="M 192 72 C 192 95.195312 163.347656 114 128 114 C 92.652344 114 64 95.195312 64 72 C 64 48.804688 92.652344 30 128 30 C 163.347656 30 192 48.804688 192 72 "/>
+</g>
+</svg>

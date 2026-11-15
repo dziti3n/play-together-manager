@@ -1,6 +1,7 @@
 import React from 'react';
-import { Moon, Sun, Plus, Download, ClipboardList } from 'lucide-react';
+import { Moon, Sun, Plus, Download, ClipboardList, Smartphone, Cloud } from 'lucide-react';
 import { Account } from '../types';
+import { CropImage } from './CropImage';
 
 interface NavbarProps {
   accounts: Account[];
@@ -9,6 +10,10 @@ interface NavbarProps {
   onOpenNewAccount: () => void;
   onOpenBackup: () => void;
   onOpenFarmOrder: () => void;
+  onOpenConnectMobile: () => void;
+  onOpenCloudSync: () => void;
+  isCloudConnected?: boolean;
+  cloudRoomId?: string;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -18,28 +23,32 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenNewAccount,
   onOpenBackup,
   onOpenFarmOrder,
+  onOpenConnectMobile,
+  onOpenCloudSync,
+  isCloudConnected = false,
+  cloudRoomId,
 }) => {
   const activeCount = accounts.filter((a) => a.status === 'active').length;
 
   return (
-    <header className="sticky top-0 z-30 backdrop-blur-md bg-[#141518]/90 dark:bg-[#141518]/90 light:bg-white/90 border-b border-[#26282f] dark:border-[#26282f] light:border-slate-200 px-4 lg:px-8 py-3.5 transition-colors">
+    <header className="sticky top-0 z-30 backdrop-blur-md bg-white/95 dark:bg-[#14161C]/95 border-b border-slate-200 dark:border-[#26282F] px-4 lg:px-8 py-3.5 transition-colors shadow-xs">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-pink-500 flex items-center justify-center shadow-lg shadow-orange-500/20 text-white font-extrabold text-lg tracking-wider">
-            PT
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 flex items-center justify-center shadow-lg shadow-orange-500/25 p-1 shrink-0">
+            <CropImage name="Khoai lang" className="w-8 h-8 object-contain drop-shadow" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base sm:text-lg font-bold text-white dark:text-white light:text-slate-800 tracking-tight">
+              <h1 className="text-base sm:text-lg font-black text-slate-800 dark:text-white tracking-tight">
                 Play Together Farm
               </h1>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                Nông Trại &amp; Biến Thể
+              <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                Quản Lý Rương Đồ
               </span>
             </div>
-            <p className="text-xs text-[#8e95a5] dark:text-[#8e95a5] light:text-slate-500 hidden sm:block">
-              Quản lý rương đồ &amp; tự động làm đơn trên toàn bộ tài khoản
+            <p className="text-xs text-slate-500 dark:text-[#8e95a5] hidden sm:block font-medium">
+              Kiểm tra củ quả &amp; tự động làm đơn hàng trên toàn bộ tài khoản
             </p>
           </div>
         </div>
@@ -47,17 +56,17 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Active status */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1c1e22] border border-[#2b2d35] text-xs text-[#9a9fa8]">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Đang hoạt động: <strong className="text-emerald-400">{activeCount}</strong>/{accounts.length}
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#1C1E24] border border-slate-200 dark:border-[#2B2D35] text-xs text-slate-600 dark:text-[#9a9fa8]">
+            <span className="flex items-center gap-1.5 font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Đang hoạt động: <strong className="text-emerald-600 dark:text-emerald-400">{activeCount}</strong>/{accounts.length}
             </span>
           </div>
 
           {/* Làm Đơn Nông Trại Button */}
           <button
             onClick={onOpenFarmOrder}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-cyan-900/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-xs sm:text-sm font-black shadow-lg shadow-sky-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <ClipboardList className="w-4 h-4" />
             <span>Làm Đơn Nông Trại</span>
@@ -67,25 +76,51 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onToggleTheme}
             title={theme === 'dark' ? 'Chuyển giao diện Sáng' : 'Chuyển giao diện Tối'}
-            className="p-2 rounded-xl bg-[#1c1e22] text-[#9a9fa8] hover:text-white border border-[#2b2d35] transition-colors"
+            className="p-2 rounded-2xl bg-slate-100 dark:bg-[#1C1E24] text-slate-600 dark:text-[#9a9fa8] hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-[#2B2D35] transition-colors"
           >
-            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400" />}
+            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
+          </button>
+
+          {/* Cloud Sync Nhóm Bạn Bè */}
+          <button
+            onClick={onOpenCloudSync}
+            title={isCloudConnected ? `Đang đồng bộ Cloud Realtime với phòng: ${cloudRoomId}` : 'Cài đặt đồng bộ Cloud Realtime cho nhóm bạn bè'}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl border text-xs sm:text-sm font-extrabold transition-all hover:scale-[1.02] active:scale-[0.98] ${
+              isCloudConnected
+                ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 ring-1 ring-emerald-500/30'
+                : 'bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border-sky-500/30'
+            }`}
+          >
+            <Cloud className={`w-4 h-4 ${isCloudConnected ? 'animate-pulse text-emerald-500' : 'text-sky-500'}`} />
+            <span className="hidden sm:inline">
+              {isCloudConnected ? `🟢 Cloud: ${cloudRoomId}` : '☁️ Cloud Nhóm'}
+            </span>
+          </button>
+
+          {/* Mở trên điện thoại */}
+          <button
+            onClick={onOpenConnectMobile}
+            title="Mở ứng dụng trên điện thoại (iPhone / Android)"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs sm:text-sm font-extrabold transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Smartphone className="w-4 h-4" />
+            <span className="hidden sm:inline">📱 Trên Đt</span>
           </button>
 
           {/* Backup */}
           <button
             onClick={onOpenBackup}
             title="Sao lưu & Xuất nhập file"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1c1e22] text-xs sm:text-sm font-medium text-slate-200 hover:text-white border border-[#2b2d35] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-slate-100 dark:bg-[#1C1E24] text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-[#2B2D35] transition-colors"
           >
-            <Download className="w-4 h-4 text-blue-400" />
+            <Download className="w-4 h-4 text-blue-500" />
             <span className="hidden sm:inline">Sao lưu</span>
           </button>
 
           {/* Add account */}
           <button
             onClick={onOpenNewAccount}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-900/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-black shadow-md shadow-emerald-600/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Thêm tài khoản</span>

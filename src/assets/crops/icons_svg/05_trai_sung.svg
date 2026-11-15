@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256pt" height="256pt" viewBox="0 0 256 256" version="1.1">
+<defs>
+<radialGradient id="radial0" gradientUnits="userSpaceOnUse" cx="128" cy="148" fx="100.222222" fy="120.222222" r="100" >
+<stop offset="0.1" style="stop-color:rgb(67.058824%,27.843137%,73.72549%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(29.019608%,7.843137%,54.901961%);stop-opacity:1;"/>
+</radialGradient>
+</defs>
+<g id="surface26">
+<path style="fill-rule:nonzero;fill:url(#radial0);stroke-width:7.5;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(16.470588%,3.137255%,32.941176%);stroke-opacity:1;stroke-miterlimit:10;" d="M 128 36 C 152 36 165 82 194 135 C 218 182 184 232 128 232 C 72 232 38 182 62 135 C 91 82 104 36 128 36 Z M 128 36 "/>
+<path style="fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(19.215686%,4.313725%,36.862745%);stroke-opacity:0.4;stroke-miterlimit:10;" d="M 118.398438 62 C 83.199219 125 83.199219 180 112 220 "/>
+<path style="fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(19.215686%,4.313725%,36.862745%);stroke-opacity:0.4;stroke-miterlimit:10;" d="M 128 62 C 128 125 128 180 128 220 "/>
+<path style="fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(19.215686%,4.313725%,36.862745%);stroke-opacity:0.4;stroke-miterlimit:10;" d="M 137.601562 62 C 172.800781 125 172.800781 180 144 220 "/>
+<path style="fill:none;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(40.784314%,62.352941%,21.960784%);stroke-opacity:1;stroke-miterlimit:10;" d="M 128 38 L 132 20 "/>
+<path style=" stroke:none;fill-rule:nonzero;fill:rgb(100%,100%,100%);fill-opacity:0.38;" d="M 112.835938 122.007812 C 118.628906 136.34375 116.683594 150.652344 108.488281 153.960938 C 100.296875 157.269531 88.957031 148.332031 83.164062 133.992188 C 77.371094 119.65625 79.316406 105.347656 87.511719 102.039062 C 95.703125 98.730469 107.042969 107.667969 112.835938 122.007812 "/>
+</g>
+</svg>

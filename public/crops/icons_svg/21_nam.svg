@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256pt" height="256pt" viewBox="0 0 256 256" version="1.1">
+<defs>
+<linearGradient id="linear0" gradientUnits="userSpaceOnUse" x1="96" y1="130" x2="160" y2="228" >
+<stop offset="0" style="stop-color:rgb(100%,97.254902%,88.235294%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(84.313725%,80%,78.431373%);stop-opacity:1;"/>
+</linearGradient>
+<radialGradient id="radial0" gradientUnits="userSpaceOnUse" cx="112" cy="78" fx="85.611111" fy="51.611111" r="95" >
+<stop offset="0.1" style="stop-color:rgb(63.137255%,53.333333%,49.803922%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(30.588235%,20.392157%,18.039216%);stop-opacity:1;"/>
+</radialGradient>
+</defs>
+<g id="surface122">
+<path style="fill-rule:nonzero;fill:url(#linear0);stroke-width:7.5;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(36.470588%,25.098039%,21.568627%);stroke-opacity:1;stroke-miterlimit:10;" d="M 102 130 C 96 175 88 218 104 228 C 128 234 128 234 152 228 C 168 218 160 175 154 130 Z M 102 130 "/>
+<path style="fill-rule:nonzero;fill:url(#radial0);stroke-width:7.5;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(18.039216%,10.980392%,9.411765%);stroke-opacity:1;stroke-miterlimit:10;" d="M 42 134 C 38 58 102 32 128 32 C 154 32 218 58 214 134 C 175 148 81 148 42 134 Z M 42 134 "/>
+<path style=" stroke:none;fill-rule:nonzero;fill:rgb(100%,100%,100%);fill-opacity:0.35;" d="M 109.425781 65.671875 C 112.535156 71.523438 106.363281 80.890625 95.632812 86.59375 C 84.90625 92.300781 73.6875 92.179688 70.574219 86.328125 C 67.464844 80.476562 73.636719 71.109375 84.367188 65.40625 C 95.09375 59.699219 106.3125 59.820312 109.425781 65.671875 "/>
+</g>
+</svg>

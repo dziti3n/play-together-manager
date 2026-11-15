@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256pt" height="256pt" viewBox="0 0 256 256" version="1.1">
+<defs>
+<radialGradient id="radial0" gradientUnits="userSpaceOnUse" cx="110" cy="120" fx="85" fy="95" r="90" >
+<stop offset="0.1" style="stop-color:rgb(86.27451%,90.588235%,45.882353%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(33.333333%,54.509804%,18.431373%);stop-opacity:1;"/>
+</radialGradient>
+<linearGradient id="linear0" gradientUnits="userSpaceOnUse" x1="0" y1="-22" x2="54" y2="22" >
+<stop offset="0" style="stop-color:rgb(49.411765%,85.098039%,34.117647%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(21.960784%,55.686275%,23.529412%);stop-opacity:1;"/>
+</linearGradient>
+</defs>
+<g id="surface218">
+<path style="fill-rule:nonzero;fill:url(#radial0);stroke-width:7.5;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(14.901961%,30.196078%,7.843137%);stroke-opacity:1;stroke-miterlimit:10;" d="M 212 140 C 212 185.289062 174.390625 222 128 222 C 81.609375 222 44 185.289062 44 140 C 44 94.710938 81.609375 58 128 58 C 174.390625 58 212 94.710938 212 140 "/>
+<path style="fill:none;stroke-width:11;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(36.470588%,25.098039%,21.568627%);stroke-opacity:1;stroke-miterlimit:10;" d="M 128 58 L 128 28 "/>
+<path style="fill-rule:nonzero;fill:url(#linear0);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(14.117647%,35.686275%,14.901961%);stroke-opacity:1;stroke-miterlimit:10;" d="M 0 0 C 18.900176 -21.999394 40.498131 -17.600154 54.000258 0.00130512 C 40.500486 17.601286 18.898282 22.001228 0 0 Z M 0 0 " transform="matrix(0.906308,-0.422618,0.422618,0.906308,128,52)"/>
+<path style="fill:none;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(14.117647%,35.686275%,14.901961%);stroke-opacity:0.5;stroke-miterlimit:10;" d="M 8.098304 0.000680048 L 43.200159 -0.000702184 " transform="matrix(0.906308,-0.422618,0.422618,0.906308,128,52)"/>
+<path style=" stroke:none;fill-rule:nonzero;fill:rgb(100%,100%,100%);fill-opacity:0.5;" d="M 104.382812 96.527344 C 108.816406 102.863281 105.078125 113.132812 96.03125 119.46875 C 86.980469 125.804688 76.050781 125.804688 71.617188 119.472656 C 67.183594 113.136719 70.921875 102.867188 79.96875 96.53125 C 89.019531 90.195312 99.949219 90.195312 104.382812 96.527344 "/>
+</g>
+</svg>

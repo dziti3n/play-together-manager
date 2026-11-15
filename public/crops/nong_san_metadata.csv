@@ -1,0 +1,42 @@
+﻿ID,Slug,Tên nông sản,Số lượng hiển thị,Icon 256x256,Icon 128x128,Icon Cắt Sát Viền,File Vector SVG
+1,sau_rieng,Sầu riêng,157,icons_256x256/01_sau_rieng.png,icons_128x128/01_sau_rieng.png,icons_tight_crop/01_sau_rieng.png,icons_svg/01_sau_rieng.svg
+2,hat_de,Hạt dẻ,126,icons_256x256/02_hat_de.png,icons_128x128/02_hat_de.png,icons_tight_crop/02_hat_de.png,icons_svg/02_hat_de.svg
+3,dua,Dừa,66,icons_256x256/03_dua.png,icons_128x128/03_dua.png,icons_tight_crop/03_dua.png,icons_svg/03_dua.svg
+4,du_du,Đu đủ,61,icons_256x256/04_du_du.png,icons_128x128/04_du_du.png,icons_tight_crop/04_du_du.png,icons_svg/04_du_du.svg
+5,trai_sung,Trái sung,38,icons_256x256/05_trai_sung.png,icons_128x128/05_trai_sung.png,icons_tight_crop/05_trai_sung.png,icons_svg/05_trai_sung.svg
+6,cay_phong,Cây phong,38,icons_256x256/06_cay_phong.png,icons_128x128/06_cay_phong.png,icons_tight_crop/06_cay_phong.png,icons_svg/06_cay_phong.svg
+7,anh_dao,Anh đào,37,icons_256x256/07_anh_dao.png,icons_128x128/07_anh_dao.png,icons_tight_crop/07_anh_dao.png,icons_svg/07_anh_dao.svg
+8,qua_le_gai,Quả lê gai,34,icons_256x256/08_qua_le_gai.png,icons_128x128/08_qua_le_gai.png,icons_tight_crop/08_qua_le_gai.png,icons_svg/08_qua_le_gai.svg
+9,tao,Táo,31,icons_256x256/09_tao.png,icons_128x128/09_tao.png,icons_tight_crop/09_tao.png,icons_svg/09_tao.svg
+10,nhan_sam,Nhân sâm,31,icons_256x256/10_nhan_sam.png,icons_128x128/10_nhan_sam.png,icons_tight_crop/10_nhan_sam.png,icons_svg/10_nhan_sam.svg
+11,dau_tay,Dâu tây,28,icons_256x256/11_dau_tay.png,icons_128x128/11_dau_tay.png,icons_tight_crop/11_dau_tay.png,icons_svg/11_dau_tay.svg
+12,hoa_xuong_rong_cholla,Hoa xương Rồng Cholla,26,icons_256x256/12_hoa_xuong_rong_cholla.png,icons_128x128/12_hoa_xuong_rong_cholla.png,icons_tight_crop/12_hoa_xuong_rong_cholla.png,icons_svg/12_hoa_xuong_rong_cholla.svg
+13,khoai_lang,Khoai lang,25,icons_256x256/13_khoai_lang.png,icons_128x128/13_khoai_lang.png,icons_tight_crop/13_khoai_lang.png,icons_svg/13_khoai_lang.svg
+14,lua,Lúa,25,icons_256x256/14_lua.png,icons_128x128/14_lua.png,icons_tight_crop/14_lua.png,icons_svg/14_lua.svg
+15,ca_chua,Cà chua,23,icons_256x256/15_ca_chua.png,icons_128x128/15_ca_chua.png,icons_tight_crop/15_ca_chua.png,icons_svg/15_ca_chua.svg
+16,xuong_rong_saguaro,Xương rồng Saguaro,23,icons_256x256/16_xuong_rong_saguaro.png,icons_128x128/16_xuong_rong_saguaro.png,icons_tight_crop/16_xuong_rong_saguaro.png,icons_svg/16_xuong_rong_saguaro.svg
+17,mang_cau,Mãng cầu,22,icons_256x256/17_mang_cau.png,icons_128x128/17_mang_cau.png,icons_tight_crop/17_mang_cau.png,icons_svg/17_mang_cau.svg
+18,khoai_tay,Khoai tây,22,icons_256x256/18_khoai_tay.png,icons_128x128/18_khoai_tay.png,icons_tight_crop/18_khoai_tay.png,icons_svg/18_khoai_tay.svg
+19,ca_rot,Cà rốt,20,icons_256x256/19_ca_rot.png,icons_128x128/19_ca_rot.png,icons_tight_crop/19_ca_rot.png,icons_svg/19_ca_rot.svg
+20,bi_ngo,Bí ngô,20,icons_256x256/20_bi_ngo.png,icons_128x128/20_bi_ngo.png,icons_tight_crop/20_bi_ngo.png,icons_svg/20_bi_ngo.svg
+21,nam,Nấm,20,icons_256x256/21_nam.png,icons_128x128/21_nam.png,icons_tight_crop/21_nam.png,icons_svg/21_nam.svg
+22,rau_chan_vit,Rau chân vịt,20,icons_256x256/22_rau_chan_vit.png,icons_128x128/22_rau_chan_vit.png,icons_tight_crop/22_rau_chan_vit.png,icons_svg/22_rau_chan_vit.svg
+23,xuong_rong_gai_vang,Xương rồng gai vàng,20,icons_256x256/23_xuong_rong_gai_vang.png,icons_128x128/23_xuong_rong_gai_vang.png,icons_tight_crop/23_xuong_rong_gai_vang.png,icons_svg/23_xuong_rong_gai_vang.svg
+24,cuc_van_tho_cam,Cúc vạn thọ (cam),20,icons_256x256/24_cuc_van_tho_cam.png,icons_128x128/24_cuc_van_tho_cam.png,icons_tight_crop/24_cuc_van_tho_cam.png,icons_svg/24_cuc_van_tho_cam.svg
+25,cu_cai,Củ cải,19,icons_256x256/25_cu_cai.png,icons_128x128/25_cu_cai.png,icons_tight_crop/25_cu_cai.png,icons_svg/25_cu_cai.svg
+26,chanh,Chanh,18,icons_256x256/26_chanh.png,icons_128x128/26_chanh.png,icons_tight_crop/26_chanh.png,icons_svg/26_chanh.svg
+27,dua_hau,Dưa hấu,17,icons_256x256/27_dua_hau.png,icons_128x128/27_dua_hau.png,icons_tight_crop/27_dua_hau.png,icons_svg/27_dua_hau.svg
+28,viet_quat,Việt quất,16,icons_256x256/28_viet_quat.png,icons_128x128/28_viet_quat.png,icons_tight_crop/28_viet_quat.png,icons_svg/28_viet_quat.svg
+29,khe,Khế,15,icons_256x256/29_khe.png,icons_128x128/29_khe.png,icons_tight_crop/29_khe.png,icons_svg/29_khe.svg
+30,phuong_tim,Phượng tím,15,icons_256x256/30_phuong_tim.png,icons_128x128/30_phuong_tim.png,icons_tight_crop/30_phuong_tim.png,icons_svg/30_phuong_tim.svg
+31,cay_bao_bap,Cây bao báp,15,icons_256x256/31_cay_bao_bap.png,icons_128x128/31_cay_bao_bap.png,icons_tight_crop/31_cay_bao_bap.png,icons_svg/31_cay_bao_bap.svg
+32,rau_xa_lach,Rau xà lách,13,icons_256x256/32_rau_xa_lach.png,icons_128x128/32_rau_xa_lach.png,icons_tight_crop/32_rau_xa_lach.png,icons_svg/32_rau_xa_lach.svg
+33,nho,Nho,11,icons_256x256/33_nho.png,icons_128x128/33_nho.png,icons_tight_crop/33_nho.png,icons_svg/33_nho.svg
+34,cay_dau,Cây đậu,11,icons_256x256/34_cay_dau.png,icons_128x128/34_cay_dau.png,icons_tight_crop/34_cay_dau.png,icons_svg/34_cay_dau.svg
+35,xoai,Xoài,7,icons_256x256/35_xoai.png,icons_128x128/35_xoai.png,icons_tight_crop/35_xoai.png,icons_svg/35_xoai.svg
+36,bap,Bắp,6,icons_256x256/36_bap.png,icons_128x128/36_bap.png,icons_tight_crop/36_bap.png,icons_svg/36_bap.svg
+37,tao_duong,Táo đường,6,icons_256x256/37_tao_duong.png,icons_128x128/37_tao_duong.png,icons_tight_crop/37_tao_duong.png,icons_svg/37_tao_duong.svg
+38,trai_hong,Trái hồng,6,icons_256x256/38_trai_hong.png,icons_128x128/38_trai_hong.png,icons_tight_crop/38_trai_hong.png,icons_svg/38_trai_hong.svg
+39,cay_bong_toi,Cây bóng tối,3,icons_256x256/39_cay_bong_toi.png,icons_128x128/39_cay_bong_toi.png,icons_tight_crop/39_cay_bong_toi.png,icons_svg/39_cay_bong_toi.svg
+40,cay_tung,Cây tùng,1,icons_256x256/40_cay_tung.png,icons_128x128/40_cay_tung.png,icons_tight_crop/40_cay_tung.png,icons_svg/40_cay_tung.svg
+41,bi_ngo_halloween,Bí ngô Halloween,1,icons_256x256/41_bi_ngo_halloween.png,icons_128x128/41_bi_ngo_halloween.png,icons_tight_crop/41_bi_ngo_halloween.png,icons_svg/41_bi_ngo_halloween.svg

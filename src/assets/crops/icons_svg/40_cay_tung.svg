@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256pt" height="256pt" viewBox="0 0 256 256" version="1.1">
+<defs>
+<linearGradient id="linear0" gradientUnits="userSpaceOnUse" x1="128" y1="104" x2="128" y2="196" >
+<stop offset="0" style="stop-color:rgb(40%,73.333333%,41.568627%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(10.588235%,36.862745%,12.54902%);stop-opacity:1;"/>
+</linearGradient>
+<linearGradient id="linear1" gradientUnits="userSpaceOnUse" x1="128" y1="64" x2="128" y2="148" >
+<stop offset="0" style="stop-color:rgb(40%,73.333333%,41.568627%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(10.588235%,36.862745%,12.54902%);stop-opacity:1;"/>
+</linearGradient>
+<linearGradient id="linear2" gradientUnits="userSpaceOnUse" x1="128" y1="24" x2="128" y2="102" >
+<stop offset="0" style="stop-color:rgb(40%,73.333333%,41.568627%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(10.588235%,36.862745%,12.54902%);stop-opacity:1;"/>
+</linearGradient>
+</defs>
+<g id="surface236">
+<path style="fill-rule:nonzero;fill:rgb(42.745098%,29.803922%,25.490196%);fill-opacity:1;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(24.313725%,15.294118%,13.72549%);stroke-opacity:1;stroke-miterlimit:10;" d="M 108 185 L 108 232 L 148 232 L 148 185 Z M 108 185 "/>
+<path style="fill-rule:nonzero;fill:url(#linear0);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(5.098039%,23.137255%,6.27451%);stroke-opacity:1;stroke-miterlimit:10;" d="M 128 104 L 212 196 L 44 196 Z M 128 104 "/>
+<path style="fill-rule:nonzero;fill:url(#linear1);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(5.098039%,23.137255%,6.27451%);stroke-opacity:1;stroke-miterlimit:10;" d="M 128 64 L 196 148 L 60 148 Z M 128 64 "/>
+<path style="fill-rule:nonzero;fill:url(#linear2);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(5.098039%,23.137255%,6.27451%);stroke-opacity:1;stroke-miterlimit:10;" d="M 128 24 L 178 102 L 78 102 Z M 128 24 "/>
+</g>
+</svg>

@@ -1,8 +1,20 @@
-import { Account } from '../types';
+import { Account, FarmOrder } from '../types';
+import {
+  CROP_ASSETS,
+  getCropImageByName,
+  getCropPngByName,
+  getCropEmojiByName,
+  CropAssetItem,
+} from './cropAssets';
 
 export interface GameCrop {
+  id?: number;
+  slug?: string;
   name: string;
   icon: string;
+  iconSvg?: string;
+  iconPng?: string;
+  emoji?: string;
 }
 
 export interface GameVariant {
@@ -12,52 +24,31 @@ export interface GameVariant {
   borderColor: string;
 }
 
-// 41 loại cây/nông sản chuẩn game Play Together từ ảnh chụp màn hình
-export const PLAY_TOGETHER_CROPS: GameCrop[] = [
-  { name: 'Sầu riêng', icon: '🍈' },
-  { name: 'Hạt dẻ', icon: '🌰' },
-  { name: 'Dừa', icon: '🥥' },
-  { name: 'Đu đủ', icon: '🍈' },
-  { name: 'Trái sung', icon: '🫐' },
-  { name: 'Cây phong', icon: '🍁' },
-  { name: 'Anh đào', icon: '🍒' },
-  { name: 'Quả lê gai', icon: '🍐' },
-  { name: 'Táo', icon: '🍎' },
-  { name: 'Nhân sâm', icon: '🥕' },
-  { name: 'Dâu tây', icon: '🍓' },
-  { name: 'Hoa xương rồng Cholla', icon: '🌼' },
-  { name: 'Khoai lang', icon: '🍠' },
-  { name: 'Lúa', icon: '🌾' },
-  { name: 'Cà chua', icon: '🍅' },
-  { name: 'Xương rồng Saguaro', icon: '🌵' },
-  { name: 'Mãng cầu', icon: '🍈' },
-  { name: 'Khoai tây', icon: '🥔' },
-  { name: 'Cà rốt', icon: '🥕' },
-  { name: 'Bí ngô', icon: '🎃' },
-  { name: 'Nấm', icon: '🍄' },
-  { name: 'Rau chân vịt', icon: '🥬' },
-  { name: 'Xương rồng gai vàng', icon: '🌵' },
-  { name: 'Cúc vạn thọ (cam)', icon: '🏵️' },
-  { name: 'Củ cải', icon: '🥬' },
-  { name: 'Chanh', icon: '🍋' },
-  { name: 'Dưa hấu', icon: '🍉' },
-  { name: 'Việt quất', icon: '🫐' },
-  { name: 'Khế', icon: '⭐' },
-  { name: 'Phượng tím', icon: '🌸' },
-  { name: 'Cây bao báp', icon: '🌳' },
-  { name: 'Rau xà lách', icon: '🥬' },
-  { name: 'Nho', icon: '🍇' },
-  { name: 'Cây đậu', icon: '🫛' },
-  { name: 'Xoài', icon: '🥭' },
-  { name: 'Bắp', icon: '🌽' },
-  { name: 'Táo đường', icon: '🍏' },
-  { name: 'Trái hồng', icon: '🍅' },
-  { name: 'Cây bóng tối', icon: '🌑' },
-  { name: 'Cây tùng', icon: '🌲' },
-  { name: 'Bí ngô Halloween', icon: '🎃' },
-];
+// 41 loại cây/nông sản chuẩn game Play Together được nạp trực tiếp từ bộ ảnh Vector HD trích xuất
+export const PLAY_TOGETHER_CROPS: GameCrop[] = Object.values(CROP_ASSETS).map((item) => ({
+  id: item.id,
+  slug: item.slug,
+  name: item.name,
+  icon: item.icon,
+  iconSvg: item.iconSvg,
+  iconPng: item.iconPng,
+  emoji: item.emoji,
+}));
 
-// 19 biến thể chuẩn game Play Together từ ảnh chụp màn hình
+export function getCropIcon(name: string): string {
+  const img = getCropImageByName(name);
+  return img || '';
+}
+
+export function getCropPng(name: string): string {
+  return getCropPngByName(name) || '';
+}
+
+export function getCropEmoji(name: string): string {
+  return getCropEmojiByName(name) || '🍎';
+}
+
+// 19 biến thể chuẩn game Play Together từ ảnh chụp màn hình với màu sắc đặc trưng
 export const PLAY_TOGETHER_VARIANTS: GameVariant[] = [
   { name: 'Ánh vàng', color: '#fbbf24', bgColor: '#453205', borderColor: '#d97706' },
   { name: 'Cầu vồng', color: '#f87171', bgColor: '#451212', borderColor: '#dc2626' },
@@ -80,98 +71,12 @@ export const PLAY_TOGETHER_VARIANTS: GameVariant[] = [
   { name: 'Giai điệu', color: '#5eead4', bgColor: '#042f2e', borderColor: '#14b8a6' },
 ];
 
-export const INITIAL_ACCOUNTS: Account[] = [
-  {
-    id: 'acc-1',
-    username: 'tunafishbonmg88',
-    password: 'password123',
-    characterName: 'Tunafish_01',
-    roleId: 'KAIA3SM48R',
-    status: 'active',
-    note: 'Acc chính farm trái cây và làm nhiệm vụ',
-    stars: 7,
-    gems: 339,
-    tickets: 12,
-    fruits: [
-      {
-        id: 'fs-1',
-        fruitName: 'Dưa hấu',
-        fruitIcon: '🍉',
-        variants: ['Cực quang', 'Ánh vàng'],
-        quantity: 5,
-      },
-      {
-        id: 'fs-2',
-        fruitName: 'Dưa hấu',
-        fruitIcon: '🍉',
-        variants: [], // Trái thường
-        quantity: 12,
-      },
-      {
-        id: 'fs-3',
-        fruitName: 'Cà chua',
-        fruitIcon: '🍅',
-        variants: ['Khí lạnh'],
-        quantity: 8,
-      },
-      {
-        id: 'fs-4',
-        fruitName: 'Cà rốt',
-        fruitIcon: '🥕',
-        variants: [],
-        quantity: 20,
-      },
-      {
-        id: 'fs-5',
-        fruitName: 'Sầu riêng',
-        fruitIcon: '🍈',
-        variants: ['Cầu vồng', 'Nhiễm điện', 'Ánh trăng'],
-        quantity: 2,
-      },
-    ],
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'acc-2',
-    username: 'tunafishboyby94',
-    password: 'password456',
-    characterName: 'Tunafish_Boy',
-    roleId: 'KAIA3SM4BK',
-    status: 'active',
-    note: 'Acc clone tích trữ nông sản và làm đơn',
-    stars: 7,
-    gems: 451,
-    tickets: 5,
-    fruits: [
-      {
-        id: 'fs-6',
-        fruitName: 'Dưa hấu',
-        fruitIcon: '🍉',
-        variants: ['Cực quang', 'Ánh vàng'],
-        quantity: 3,
-      },
-      {
-        id: 'fs-7',
-        fruitName: 'Cà chua',
-        fruitIcon: '🍅',
-        variants: ['Khí lạnh'],
-        quantity: 15,
-      },
-      {
-        id: 'fs-8',
-        fruitName: 'Bắp',
-        fruitIcon: '🌽',
-        variants: ['Băng'],
-        quantity: 10,
-      },
-      {
-        id: 'fs-9',
-        fruitName: 'Cà rốt',
-        fruitIcon: '🥕',
-        variants: [],
-        quantity: 25,
-      },
-    ],
-    updatedAt: new Date().toISOString(),
-  },
-];
+export function getVariantStyle(name: string): GameVariant | undefined {
+  return PLAY_TOGETHER_VARIANTS.find((v) => v.name.toLowerCase() === name.toLowerCase());
+}
+
+// Dữ liệu tài khoản mặc định (Rỗng để người dùng tự nhập dữ liệu thật)
+export const INITIAL_ACCOUNTS: Account[] = [];
+
+// Dữ liệu đơn hàng mặc định (Rỗng để người dùng tự tạo hoặc quét đơn thật)
+export const INITIAL_ORDERS: FarmOrder[] = [];

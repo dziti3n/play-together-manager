@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256pt" height="256pt" viewBox="0 0 256 256" version="1.1">
+<defs>
+<radialGradient id="radial0" gradientUnits="userSpaceOnUse" cx="110" cy="115" fx="82.777778" fy="87.777778" r="98" >
+<stop offset="0.1" style="stop-color:rgb(100%,96.078431%,61.568627%);stop-opacity:1;"/>
+<stop offset="1" style="stop-color:rgb(98.431373%,75.294118%,17.647059%);stop-opacity:1;"/>
+</radialGradient>
+</defs>
+<g id="surface152">
+<path style="fill-rule:nonzero;fill:url(#radial0);stroke-width:7.5;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(54.901961%,38.431373%,0%);stroke-opacity:1;stroke-miterlimit:10;" d="M 128 32 C 144 32 148 48 164 62 C 206 98 206 162 164 198 C 148 212 144 228 128 228 C 112 228 108 212 92 198 C 50 162 50 98 92 62 C 108 48 112 32 128 32 Z M 128 32 "/>
+<path style=" stroke:none;fill-rule:nonzero;fill:rgb(100%,100%,100%);fill-opacity:0.55;" d="M 111.035156 102.527344 C 117.078125 119.136719 115.25 135.046875 106.945312 138.070312 C 98.640625 141.09375 87.007812 130.078125 80.964844 113.472656 C 74.921875 96.863281 76.75 80.953125 85.054688 77.929688 C 93.359375 74.90625 104.992188 85.921875 111.035156 102.527344 "/>
+</g>
+</svg>

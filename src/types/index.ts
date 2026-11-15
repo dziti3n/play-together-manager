@@ -1,11 +1,12 @@
 export type AccountStatus = 'active' | 'banned' | 'wrong_pw' | 'pending';
 
-export interface FruitStock {
+// Từng củ/trái riêng lẻ đã thu hoạch (như Ảnh 1 trong game)
+export interface HarvestedFruit {
   id: string;
   fruitName: string;
-  fruitIcon: string;
-  variants: string[]; // Tối đa 5 biến thể, mảng rỗng [] nghĩa là Trái thường (không đột biến)
-  quantity: number;
+  variants: string[]; // 0 đến tối đa 5 biến thể, mảng rỗng [] là Trái thường
+  weight?: string | number; // Ví dụ '2,42kg' hoặc số (tùy chọn)
+  createdAt: string;
 }
 
 export interface Account {
@@ -16,29 +17,41 @@ export interface Account {
   roleId: string;
   status: AccountStatus;
   note: string;
-  stars: number;        // ⭐ Cấp sao / Level
-  gems: number;         // 💎 Đá Quý / Kim Cương
-  tickets: number;      // 🎫 Vé và Phiếu
-  fruits: FruitStock[]; // 📦 Kho rương nông sản (chứa các loại quả và biến thể)
+  stars: number;             // ⭐ Level
+  gems: number;              // 💎 Kim Cương
+  tickets: number;           // 🎫 Vé
+  cash?: number;             // 💵 Tiền sao
+  gold?: number;             // 🪙 Vàng
+  fruits: HarvestedFruit[];  // Danh sách từng trái đã thu hoạch trong rương
   updatedAt: string;
 }
 
-export interface FarmOrderItem {
+// Món hàng trong đơn
+export interface OrderItem {
   id: string;
   fruitName: string;
-  requiredVariants: string[]; // Các biến thể yêu cầu (nếu rỗng = chỉ cần đúng loại quả)
-  matchExactVariants: boolean; // true = phải có đúng/đủ biến thể này; false = chỉ cần đúng loại quả bất kể biến thể
-  requiredQuantity: number;
+  requiredVariant?: string; // Tên biến thể yêu cầu (vd: 'Ánh trăng'), nếu undefined = Trái thường
+  matchAnyVariant?: boolean; // true = nhận bất kỳ biến thể nào
+  requiredQuantity: number;  // Số lượng cần (mẫu số của phân số: vd 3 trong 1/3)
+  weight?: string;          // Ví dụ: '0,1kg' (tùy chọn)
 }
 
-export interface OrderAllocation {
-  accountId: string;
-  username: string;
-  fruitStockId: string;
+// Đơn hàng nông sản (như Ảnh 2)
+export interface FarmOrder {
+  id: string;
+  title: string;
+  description: string;
+  npcName?: string;         // Ví dụ 'Speedo'
+  nextRefreshTime?: string; // Ví dụ '1 giờ 34 phút'
+  items: OrderItem[];
+  createdAt: string;
+}
+
+// Cấu trúc kết quả AI phát hiện được từ ảnh
+export interface DetectedFruitItem {
   fruitName: string;
   variants: string[];
-  availableQuantity: number;
-  takeQuantity: number;
+  quantity: number;
 }
 
 export type StatusFilter = 'all' | AccountStatus;

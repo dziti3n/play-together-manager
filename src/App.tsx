@@ -8,22 +8,38 @@ import { FarmOrderModal } from './components/FarmOrderModal';
 import { GeminiScanModal } from './components/GeminiScanModal';
 import { NewAccountModal } from './components/NewAccountModal';
 import { ImportExportModal } from './components/ImportExportModal';
+import { FeaturedCropsModal } from './components/FeaturedCropsModal';
+import { ConnectMobileModal } from './components/ConnectMobileModal';
+import { CloudSyncModal } from './components/CloudSyncModal';
 import { useAccounts, getTotalFruits } from './hooks/useAccounts';
 import { useTheme } from './hooks/useTheme';
-import { Account, FruitStock, StatusFilter } from './types';
+import { Account, DetectedFruitItem, HarvestedFruit, StatusFilter } from './types';
 
 export function App() {
   const { theme, toggleTheme } = useTheme();
   const {
     accounts,
+    orders,
+    featuredCrops,
+    toggleFeaturedCrop,
+    clearFeaturedCrops,
+    resetFeaturedCrops,
     addAccount,
     updateAccount,
     deleteAccount,
-    fulfillOrder,
+    addFruitsToAccount,
+    syncAccountFruits,
+    removeFruitFromAccount,
+    fulfillOrderDeduction,
+    addOrder,
+    deleteOrder,
     exportToJSON,
     exportToCSV,
     importFromJSON,
     resetToSampleData,
+    isCloudConnected,
+    cloudConfig,
+    setCloudConfig,
   } = useAccounts();
 
   // Filter state
@@ -35,10 +51,14 @@ export function App() {
   // Modals state
   const [infoAccount, setInfoAccount] = useState<Account | null>(null);
   const [chestAccount, setChestAccount] = useState<Account | null>(null);
+  const [chestInitialFruit, setChestInitialFruit] = useState<string | null>(null);
   const [aiScanAccount, setAiScanAccount] = useState<Account | null>(null);
   const [isFarmOrderOpen, setIsFarmOrderOpen] = useState(false);
   const [isNewAccountOpen, setIsNewAccountOpen] = useState(false);
   const [isBackupOpen, setIsBackupOpen] = useState(false);
+  const [isFeaturedModalOpen, setIsFeaturedModalOpen] = useState(false);
+  const [isConnectMobileOpen, setIsConnectMobileOpen] = useState(false);
+  const [isCloudSyncOpen, setIsCloudSyncOpen] = useState(false);
 
   // Filter accounts
   const filteredAccounts = useMemo(() => {
@@ -74,26 +94,26 @@ export function App() {
     return accounts.find((a) => a.id === chestAccount.id) || chestAccount;
   }, [chestAccount, accounts]);
 
-  const handleAddDetectedFruits = (
+  const handleSyncDetectedFruits = (
     accountId: string,
-    detected: Omit<FruitStock, 'id'>[]
+    detected: DetectedFruitItem[],
+    mode: 'replace' | 'append' = 'replace'
   ) => {
-    const acc = accounts.find((a) => a.id === accountId);
-    if (!acc) return;
-
-    const newStocks: FruitStock[] = detected.map((d, idx) => ({
-      ...d,
-      id: 'fs_ai_' + Date.now() + '_' + idx,
-    }));
-
-    updateAccount({
-      ...acc,
-      fruits: [...newStocks, ...acc.fruits],
+    const newItems: Omit<HarvestedFruit, 'id' | 'createdAt'>[] = [];
+    detected.forEach((d) => {
+      const qty = Math.max(1, d.quantity || 1);
+      for (let i = 0; i < qty; i++) {
+        newItems.push({
+          fruitName: d.fruitName,
+          variants: d.variants || [],
+        });
+      }
     });
+    syncAccountFruits(accountId, newItems, mode);
   };
 
   return (
-    <div className="min-h-screen bg-[#141518] dark:bg-[#141518] light:bg-[#f6f7fb] text-slate-100 dark:text-slate-100 light:text-slate-900 transition-colors">
+    <div className="min-h-screen bg-[#F6F4EE] dark:bg-[#131418] text-slate-800 dark:text-slate-100 transition-colors">
       {/* Navigation */}
       <Navbar
         accounts={accounts}
@@ -102,6 +122,10 @@ export function App() {
         onOpenNewAccount={() => setIsNewAccountOpen(true)}
         onOpenBackup={() => setIsBackupOpen(true)}
         onOpenFarmOrder={() => setIsFarmOrderOpen(true)}
+        onOpenConnectMobile={() => setIsConnectMobileOpen(true)}
+        onOpenCloudSync={() => setIsCloudSyncOpen(true)}
+        isCloudConnected={isCloudConnected}
+        cloudRoomId={cloudConfig?.roomId}
       />
 
       {/* Main Container */}
@@ -122,8 +146,17 @@ export function App() {
 
         <AccountTable
           accounts={filteredAccounts}
+          featuredCrops={featuredCrops}
           onOpenAccountInfo={(acc) => setInfoAccount(acc)}
-          onOpenChest={(acc) => setChestAccount(acc)}
+          onOpenChest={(acc) => {
+            setChestAccount(acc);
+            setChestInitialFruit(null);
+          }}
+          onOpenFruitDetail={(acc, fruitName) => {
+            setChestAccount(acc);
+            setChestInitialFruit(fruitName);
+          }}
+          onOpenFeaturedModal={() => setIsFeaturedModalOpen(true)}
           onDeleteAccount={deleteAccount}
         />
       </main>
@@ -140,14 +173,20 @@ export function App() {
         />
       )}
 
-      {/* MODAL 2: Chest & Variants Management */}
+      {/* MODAL 2: Chest & Variants Management (Lọc Nông Sản & Thu Hoạch Trái) */}
       {currentChestAccount && (
         <ChestModal
           account={currentChestAccount}
-          onClose={() => setChestAccount(null)}
-          onUpdateAccount={(updated) => updateAccount(updated)}
+          initialFruitName={chestInitialFruit}
+          onClose={() => {
+            setChestAccount(null);
+            setChestInitialFruit(null);
+          }}
+          onAddFruits={addFruitsToAccount}
+          onRemoveFruit={removeFruitFromAccount}
           onOpenAIScan={(acc) => {
             setChestAccount(null);
+            setChestInitialFruit(null);
             setAiScanAccount(acc);
           }}
         />
@@ -159,7 +198,10 @@ export function App() {
           isOpen={isFarmOrderOpen}
           onClose={() => setIsFarmOrderOpen(false)}
           accounts={accounts}
-          onFulfillOrder={(allocations) => fulfillOrder(allocations)}
+          orders={orders}
+          onAddOrder={addOrder}
+          onDeleteOrder={deleteOrder}
+          onFulfillOrderDeduction={fulfillOrderDeduction}
         />
       )}
 
@@ -169,7 +211,7 @@ export function App() {
           isOpen={!!aiScanAccount}
           onClose={() => setAiScanAccount(null)}
           targetAccount={aiScanAccount}
-          onAddDetectedFruits={handleAddDetectedFruits}
+          onSyncFruits={handleSyncDetectedFruits}
         />
       )}
 
@@ -192,6 +234,38 @@ export function App() {
           onExportCSV={exportToCSV}
           onImportJSON={importFromJSON}
           onResetSample={resetToSampleData}
+        />
+      )}
+
+      {/* MODAL 7: Featured Crops (Ghim Quả Nổi Bật) */}
+      {isFeaturedModalOpen && (
+        <FeaturedCropsModal
+          isOpen={isFeaturedModalOpen}
+          onClose={() => setIsFeaturedModalOpen(false)}
+          featuredCrops={featuredCrops}
+          onToggleCrop={toggleFeaturedCrop}
+          onResetDefaults={resetFeaturedCrops}
+          onClearAll={clearFeaturedCrops}
+        />
+      )}
+
+      {/* MODAL 8: Connect Mobile Phone */}
+      {isConnectMobileOpen && (
+        <ConnectMobileModal
+          isOpen={isConnectMobileOpen}
+          onClose={() => setIsConnectMobileOpen(false)}
+          networkIp="192.168.1.7"
+        />
+      )}
+
+      {/* MODAL 9: Cloud Sync Supabase */}
+      {isCloudSyncOpen && (
+        <CloudSyncModal
+          isOpen={isCloudSyncOpen}
+          onClose={() => setIsCloudSyncOpen(false)}
+          onConfigChanged={(cfg) => setCloudConfig(cfg)}
+          isConnected={isCloudConnected}
+          currentRoomId={cloudConfig?.roomId}
         />
       )}
     </div>
