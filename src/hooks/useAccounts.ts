@@ -86,6 +86,31 @@ export function useAccounts() {
     });
   };
 
+  const exportToCSV = () => {
+    const headers = ['Tài khoản', 'Tên nhân vật', 'Role ID', 'Tình trạng', 'Level', 'Kim cương', 'Vé', 'Tổng quả trong rương', 'Ghi chú'];
+    const rows = accounts.map((acc) => [
+      `"${acc.username}"`,
+      `"${acc.characterName}"`,
+      `"${acc.roleId}"`,
+      acc.status === 'active' ? 'Vào được' : acc.status === 'banned' ? 'Bị khóa' : acc.status === 'wrong_pw' ? 'Sai mật khẩu' : 'Chưa kiểm tra',
+      acc.stars,
+      acc.gems,
+      acc.tickets,
+      getTotalFruits(acc),
+      `"${(acc.note || '').replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', url);
+    downloadAnchor.setAttribute('download', `PlayTogether_Farm_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
   const exportToJSON = () => {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(accounts, null, 2));
     const downloadAnchor = document.createElement('a');
@@ -143,6 +168,7 @@ export function useAccounts() {
     deleteAccount,
     fulfillOrder,
     exportToJSON,
+    exportToCSV,
     importFromJSON,
     resetToSampleData,
   };
